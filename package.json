@@ -1,5 +1,6 @@
 {
   "name": "typematcher",
+  "private": true,
   "version": "0.1.0",
   "description": "Simple type matching library",
   "main": "dist/index.js",
@@ -13,5 +14,8 @@
     "typesafe"
   ],
   "author": "lostintime",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^2.5.2"
+  }
 }
