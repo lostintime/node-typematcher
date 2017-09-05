@@ -1,11 +1,14 @@
 {
   "name": "typematcher",
+  "private": true,
   "version": "0.1.0",
-  "description": "Simple type matching library",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "description": "Type matching library for TypeScript",
+  "main": "dist/lib/index.js",
+  "types": "dist/lib/index.d.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "tsc && mocha \"dist/test/\"",
+    "clean": "rm -R dist/",
+    "build": "tsc"
   },
   "keywords": [
     "typescript",
@@ -13,5 +16,12 @@
     "typesafe"
   ],
   "author": "lostintime",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "@types/chai": "^4.0.4",
+    "@types/mocha": "^2.2.42",
+    "chai": "^4.1.2",
+    "mocha": "^3.5.0",
+    "typescript": "^2.5.2"
+  }
 }

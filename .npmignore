@@ -1,0 +1,8 @@
+.idea
+*.iml
+.gitignore
+.npmignore
+node_modules/
+src/
+tsconfig.json
+dist/test/
