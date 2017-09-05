@@ -2,7 +2,9 @@ import {expect} from 'chai';
 import {
   hasFields,
   isAny, isArrayOf, isBoolean, isFiniteNumber, isMissing, isNever, isNull, isNumber, isObject,
-  isString, isUndefined, isValue
+  isString, isUndefined, isValue,
+  isTuple1, isTuple2, isTuple3, isTuple4, isTuple5, isTuple6, isTuple7, isTuple8, isTuple9,
+  isTuple10, isBoth, isEither, isOptional, isNullable
 } from "../lib";
 
 describe('Matchers', () => {
@@ -295,6 +297,8 @@ describe('Matchers', () => {
         b: 20,
         c: null
       })).equals(true);
+      expect(hasFields({length: isNumber})([])).equals(true);
+      expect(hasFields({length: isValue(2)})([1, 2])).equals(true);
     });
 
     it('should match missing fields for undefined matcher', () => {
@@ -315,62 +319,320 @@ describe('Matchers', () => {
         value: "wrong number"
       })).equals(false);
     });
+
+    it('should not match other types', () => {
+      const hf = hasFields({});
+      expect(hf(NaN)).equals(false);
+      expect(hf(Infinity)).equals(false);
+      expect(hf(1)).equals(false);
+      expect(hf(0)).equals(false);
+      expect(hf(1.3)).equals(false);
+      expect(hf("true")).equals(false);
+      expect(hf(false)).equals(false);
+    });
   });
 
   describe('isTuple1', () => {
+    const isT1 = isTuple1(isNumber);
+    it('should match on valid tuples', () => {
+      expect(isT1([10])).equals(true);
+      expect(isTuple1(isString)(["test"])).equals(true);
+    });
 
+    it('should not match different size tuples', () => {
+      expect(isT1([1, 2])).equals(false);
+      expect(isT1([])).equals(false);
+    });
+
+    it('should not match other types', () => {
+      expect(isT1(NaN)).equals(false);
+      expect(isT1(Infinity)).equals(false);
+      expect(isT1(1)).equals(false);
+      expect(isT1(0)).equals(false);
+      expect(isT1(1.3)).equals(false);
+      expect(isT1("true")).equals(false);
+      expect(isT1(false)).equals(false);
+      expect(isT1({})).equals(false);
+    });
   });
 
   describe('isTuple2', () => {
+    const isT2 = isTuple2(isNumber, isString);
+    it('should match on valid tuples', () => {
+      expect(isT2([10, "ten"])).equals(true);
+    });
 
+    it('should not match different size tuples', () => {
+      expect(isT2([1, "one", 2])).equals(false);
+      expect(isT2([1])).equals(false);
+    });
+
+    it('should not match other types', () => {
+      expect(isT2(NaN)).equals(false);
+      expect(isT2(Infinity)).equals(false);
+      expect(isT2(1)).equals(false);
+      expect(isT2(0)).equals(false);
+      expect(isT2(1.3)).equals(false);
+      expect(isT2("true")).equals(false);
+      expect(isT2(false)).equals(false);
+      expect(isT2({})).equals(false);
+    });
   });
 
   describe('isTuple3', () => {
+    const isT3 = isTuple3(isNumber, isString, isBoolean);
+    it('should match on valid tuples', () => {
+      expect(isT3([10, "ten", false])).equals(true);
+    });
 
+    it('should not match different size tuples', () => {
+      expect(isT3([1, "one", true, 2])).equals(false);
+      expect(isT3([1, "one"])).equals(false);
+    });
+
+    it('should not match other types', () => {
+      expect(isT3(NaN)).equals(false);
+      expect(isT3(Infinity)).equals(false);
+      expect(isT3(1)).equals(false);
+      expect(isT3(0)).equals(false);
+      expect(isT3(1.3)).equals(false);
+      expect(isT3("true")).equals(false);
+      expect(isT3(false)).equals(false);
+      expect(isT3({})).equals(false);
+    });
   });
 
   describe('isTuple4', () => {
+    const isT4 = isTuple4(isNumber, isString, isBoolean, isNumber);
+    it('should match on valid tuples', () => {
+      expect(isT4([10, "ten", false, 2])).equals(true);
+    });
 
+    it('should not match different size tuples', () => {
+      expect(isT4([1, "one", true, 2, ""])).equals(false);
+      expect(isT4([1, "one", true])).equals(false);
+    });
+
+    it('should not match other types', () => {
+      expect(isT4(NaN)).equals(false);
+      expect(isT4(Infinity)).equals(false);
+      expect(isT4(1)).equals(false);
+      expect(isT4(0)).equals(false);
+      expect(isT4(1.3)).equals(false);
+      expect(isT4("true")).equals(false);
+      expect(isT4(false)).equals(false);
+      expect(isT4({})).equals(false);
+    });
   });
 
   describe('isTuple5', () => {
+    const isT5 = isTuple5(isNumber, isString, isBoolean, isNumber, isNumber);
+    it('should match on valid tuples', () => {
+      expect(isT5([10, "ten", false, 2, 3])).equals(true);
+    });
 
+    it('should not match different size tuples', () => {
+      expect(isT5([1, "one", true, 2, 3, ""])).equals(false);
+      expect(isT5([1, "one", true, 2])).equals(false);
+    });
+
+    it('should not match other types', () => {
+      expect(isT5(NaN)).equals(false);
+      expect(isT5(Infinity)).equals(false);
+      expect(isT5(1)).equals(false);
+      expect(isT5(0)).equals(false);
+      expect(isT5(1.3)).equals(false);
+      expect(isT5("true")).equals(false);
+      expect(isT5(false)).equals(false);
+      expect(isT5({})).equals(false);
+    });
   });
 
   describe('isTuple6', () => {
+    const isT6 = isTuple6(isNumber, isString, isBoolean, isNumber, isNumber, isString);
+    it('should match on valid tuples', () => {
+      expect(isT6([10, "ten", false, 2, 3, "s"])).equals(true);
+    });
 
+    it('should not match different size tuples', () => {
+      expect(isT6([1, "one", true, 2, 3, "s", ""])).equals(false);
+      expect(isT6([1, "one", true, 2, 3])).equals(false);
+    });
+
+    it('should not match other types', () => {
+      expect(isT6(NaN)).equals(false);
+      expect(isT6(Infinity)).equals(false);
+      expect(isT6(1)).equals(false);
+      expect(isT6(0)).equals(false);
+      expect(isT6(1.3)).equals(false);
+      expect(isT6("true")).equals(false);
+      expect(isT6(false)).equals(false);
+      expect(isT6({})).equals(false);
+    });
   });
 
   describe('isTuple7', () => {
+    const isT7 = isTuple7(isNumber, isString, isBoolean, isNumber, isNumber, isString, isNull);
 
+    it('should match on valid tuples', () => {
+      expect(isT7([10, "ten", false, 2, 3, "s", null])).equals(true);
+    });
+
+    it('should not match different size tuples', () => {
+      expect(isT7([1, "one", true, 2, 3, "s", null, ""])).equals(false);
+      expect(isT7([1, "one", true, 2, 3, "s"])).equals(false);
+    });
+
+    it('should not match other types', () => {
+      expect(isT7(NaN)).equals(false);
+      expect(isT7(Infinity)).equals(false);
+      expect(isT7(1)).equals(false);
+      expect(isT7(0)).equals(false);
+      expect(isT7(1.3)).equals(false);
+      expect(isT7("true")).equals(false);
+      expect(isT7(false)).equals(false);
+      expect(isT7({})).equals(false);
+    });
   });
 
   describe('isTuple8', () => {
+    const isT8 = isTuple8(isNumber, isString, isBoolean, isNumber, isNumber, isString, isNull, isBoolean);
 
+    it('should match on valid tuples', () => {
+      expect(isT8([10, "ten", false, 2, 3, "s", null, true])).equals(true);
+    });
+
+    it('should not match different size tuples', () => {
+      expect(isT8([1, "one", true, 2, 3, "s", null, true, ""])).equals(false);
+      expect(isT8([1, "one", true, 2, 3, "s", null])).equals(false);
+    });
+
+    it('should not match other types', () => {
+      expect(isT8(NaN)).equals(false);
+      expect(isT8(Infinity)).equals(false);
+      expect(isT8(1)).equals(false);
+      expect(isT8(0)).equals(false);
+      expect(isT8(1.3)).equals(false);
+      expect(isT8("true")).equals(false);
+      expect(isT8(false)).equals(false);
+      expect(isT8({})).equals(false);
+    });
   });
 
   describe('isTuple9', () => {
+    const isT9 = isTuple9(isNumber, isString, isBoolean, isNumber, isNumber, isString, isNull, isBoolean, isString);
 
+    it('should match on valid tuples', () => {
+      expect(isT9([10, "ten", false, 2, 3, "s", null, true, "9"])).equals(true);
+    });
+
+    it('should not match different size tuples', () => {
+      expect(isT9([1, "one", true, 2, 3, "s", null, true, "9", ""])).equals(false);
+      expect(isT9([1, "one", true, 2, 3, "s", null, true])).equals(false);
+    });
+
+    it('should not match other types', () => {
+      expect(isT9(NaN)).equals(false);
+      expect(isT9(Infinity)).equals(false);
+      expect(isT9(1)).equals(false);
+      expect(isT9(0)).equals(false);
+      expect(isT9(1.3)).equals(false);
+      expect(isT9("true")).equals(false);
+      expect(isT9(false)).equals(false);
+      expect(isT9({})).equals(false);
+    });
   });
 
   describe('isTuple10', () => {
+    const isT10 = isTuple10(isNumber, isString, isBoolean, isNumber, isNumber, isString, isNull, isBoolean, isString, isValue(3));
 
+    it('should match on valid tuples', () => {
+      expect(isT10([10, "ten", false, 2, 3, "s", null, true, "9", 3])).equals(true);
+    });
+
+    it('should not match different size tuples', () => {
+      expect(isT10([1, "one", true, 2, 3, "s", null, true, "9", 3, ""])).equals(false);
+      expect(isT10([1, "one", true, 2, 3, "s", null, true, "9"])).equals(false);
+    });
+
+    it('should not match other types', () => {
+      expect(isT10(NaN)).equals(false);
+      expect(isT10(Infinity)).equals(false);
+      expect(isT10(1)).equals(false);
+      expect(isT10(0)).equals(false);
+      expect(isT10(1.3)).equals(false);
+      expect(isT10("true")).equals(false);
+      expect(isT10(false)).equals(false);
+      expect(isT10({})).equals(false);
+    });
   });
 
   describe('isBoth', () => {
+    it('should match when both matches', () => {
+      expect(isBoth(isNumber, isValue(10))(10)).equals(true);
+      expect(isBoth(hasFields({key: isString}), hasFields({value: isValue(10)}))({
+        key: "key",
+        value: 10
+      })).equals(true);
+    });
 
+    it('should not match when one does\'t match', () => {
+      expect(isBoth(isNumber, isValue(20))(30)).equals(false);
+      expect(isBoth(isString, isNumber)(10)).equals(false)
+    });
   });
 
   describe('isEither', () => {
+    it('should match when one matches', () => {
+      expect(isEither(isNumber, isValue(20))(10)).equals(true);
+      expect(isEither(isNumber, isString)(10)).equals(true);
+      expect(isEither(isNumber, isString)("str")).equals(true);
+    });
 
+    it('should not match when none match', () => {
+      expect(isBoth(isNumber, isValue(20))("str")).equals(false);
+      expect(isBoth(isString, isValue(30))(10)).equals(false)
+    });
   });
 
   describe('isOptional', () => {
+    it('should match for valid value or undefined', () => {
+      expect(isOptional(isNumber)(10)).equals(true);
+      expect(isOptional(isString)(undefined)).equals(true);
+      expect(isOptional(isNever)(undefined)).equals(true);
+    });
 
+    it('should not match for other types', () => {
+      expect(isOptional(isValue(-1))(NaN)).equals(false);
+      expect(isOptional(isValue(-1))(Infinity)).equals(false);
+      expect(isOptional(isValue(-1))(1)).equals(false);
+      expect(isOptional(isValue(-1))(0)).equals(false);
+      expect(isOptional(isValue(-1))(1.3)).equals(false);
+      expect(isOptional(isValue(-1))("true")).equals(false);
+      expect(isOptional(isValue(-1))(false)).equals(false);
+      expect(isOptional(isValue(-1))({})).equals(false);
+      expect(isOptional(isValue(-1))(null)).equals(false);
+    });
   });
 
   describe('isNullable', () => {
+    it('should match for valid value or null', () => {
+      expect(isNullable(isNumber)(10)).equals(true);
+      expect(isNullable(isString)(null)).equals(true);
+      expect(isNullable(isNever)(null)).equals(true);
+    });
 
+    it('should not match for other types', () => {
+      expect(isNullable(isValue(-1))(NaN)).equals(false);
+      expect(isNullable(isValue(-1))(Infinity)).equals(false);
+      expect(isNullable(isValue(-1))(1)).equals(false);
+      expect(isNullable(isValue(-1))(0)).equals(false);
+      expect(isNullable(isValue(-1))(1.3)).equals(false);
+      expect(isNullable(isValue(-1))("true")).equals(false);
+      expect(isNullable(isValue(-1))(false)).equals(false);
+      expect(isNullable(isValue(-1))({})).equals(false);
+      expect(isNullable(isValue(-1))(undefined)).equals(false);
+    });
   });
 
 });

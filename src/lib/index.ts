@@ -168,63 +168,63 @@ function isExactArray(matcher: Array<TypeMatcher<any>>, val: any): val is Array<
 
 }
 
-export function isTuple1<A>(matcher: [TypeMatcher<A>]): TypeMatcher<[A]> {
+export function isTuple1<A>(a: TypeMatcher<A>): TypeMatcher<[A]> {
   return function value(val: any): val is [A] {
-    return isExactArray(matcher, val);
+    return isExactArray([a], val);
   };
 }
 
-export function isTuple2<A, B>(matcher: [TypeMatcher<A>, TypeMatcher<B>]): TypeMatcher<[A, B]> {
+export function isTuple2<A, B>(a: TypeMatcher<A>, b: TypeMatcher<B>): TypeMatcher<[A, B]> {
   return function value(val: any): val is [A, B] {
-    return isExactArray(matcher, val);
+    return isExactArray([a, b], val);
   };
 }
 
-export function isTuple3<A, B, C>(matcher: [TypeMatcher<A>, TypeMatcher<B>, TypeMatcher<C>]): TypeMatcher<[A, B, C]> {
+export function isTuple3<A, B, C>(a: TypeMatcher<A>, b: TypeMatcher<B>, c: TypeMatcher<C>): TypeMatcher<[A, B, C]> {
   return function value(val: any): val is [A, B, C] {
-    return isExactArray(matcher, val);
+    return isExactArray([a, b, c], val);
   };
 }
 
-export function isTuple4<A, B, C, D>(matcher: [TypeMatcher<A>, TypeMatcher<B>, TypeMatcher<C>, TypeMatcher<D>]): TypeMatcher<[A, B, C, D]> {
+export function isTuple4<A, B, C, D>(a: TypeMatcher<A>, b: TypeMatcher<B>, c: TypeMatcher<C>, d: TypeMatcher<D>): TypeMatcher<[A, B, C, D]> {
   return function value(val: any): val is [A, B, C, D] {
-    return isExactArray(matcher, val);
+    return isExactArray([a, b, c, d], val);
   };
 }
 
-export function isTuple5<A, B, C, D, E>(matcher: [TypeMatcher<A>, TypeMatcher<B>, TypeMatcher<C>, TypeMatcher<D>, TypeMatcher<E>]): TypeMatcher<[A, B, C, D, E]> {
+export function isTuple5<A, B, C, D, E>(a: TypeMatcher<A>, b: TypeMatcher<B>, c: TypeMatcher<C>, d: TypeMatcher<D>, e: TypeMatcher<E>): TypeMatcher<[A, B, C, D, E]> {
   return function value(val: any): val is [A, B, C, D, E] {
-    return isExactArray(matcher, val);
+    return isExactArray([a, b, c, d, e], val);
   };
 }
 
-export function isTuple6<A, B, C, D, E, F>(matcher: [TypeMatcher<A>, TypeMatcher<B>, TypeMatcher<C>, TypeMatcher<D>, TypeMatcher<E>, TypeMatcher<F>]): TypeMatcher<[A, B, C, D, E, F]> {
+export function isTuple6<A, B, C, D, E, F>(a: TypeMatcher<A>, b: TypeMatcher<B>, c: TypeMatcher<C>, d: TypeMatcher<D>, e: TypeMatcher<E>, f: TypeMatcher<F>): TypeMatcher<[A, B, C, D, E, F]> {
   return function value(val: any): val is [A, B, C, D, E, F] {
-    return isExactArray(matcher, val);
+    return isExactArray([a, b, c, d, e, f], val);
   };
 }
 
-export function isTuple7<A, B, C, D, E, F, G>(matcher: [TypeMatcher<A>, TypeMatcher<B>, TypeMatcher<C>, TypeMatcher<D>, TypeMatcher<E>, TypeMatcher<F>]): TypeMatcher<[A, B, C, D, E, F, G]> {
+export function isTuple7<A, B, C, D, E, F, G>(a: TypeMatcher<A>, b: TypeMatcher<B>, c: TypeMatcher<C>, d: TypeMatcher<D>, e: TypeMatcher<E>, f: TypeMatcher<F>, g: TypeMatcher<G>): TypeMatcher<[A, B, C, D, E, F, G]> {
   return function value(val: any): val is [A, B, C, D, E, F, G] {
-    return isExactArray(matcher, val);
+    return isExactArray([a, b, c, d, e, f, g], val);
   };
 }
 
-export function isTuple8<A, B, C, D, E, F, G, H>(matcher: [TypeMatcher<A>, TypeMatcher<B>, TypeMatcher<C>, TypeMatcher<D>, TypeMatcher<E>, TypeMatcher<F>, TypeMatcher<G>]): TypeMatcher<[A, B, C, D, E, F, G, H]> {
+export function isTuple8<A, B, C, D, E, F, G, H>(a: TypeMatcher<A>, b: TypeMatcher<B>, c: TypeMatcher<C>, d: TypeMatcher<D>, e: TypeMatcher<E>, f: TypeMatcher<F>, g: TypeMatcher<G>, h: TypeMatcher<H>): TypeMatcher<[A, B, C, D, E, F, G, H]> {
   return function value(val: any): val is [A, B, C, D, E, F, G, H] {
-    return isExactArray(matcher, val);
+    return isExactArray([a, b, c, d, e, f, g, h], val);
   };
 }
 
-export function isTuple9<A, B, C, D, E, F, G, H, I>(matcher: [TypeMatcher<A>, TypeMatcher<B>, TypeMatcher<C>, TypeMatcher<D>, TypeMatcher<E>, TypeMatcher<F>, TypeMatcher<G>, TypeMatcher<H>]): TypeMatcher<[A, B, C, D, E, F, G, H, I]> {
+export function isTuple9<A, B, C, D, E, F, G, H, I>(a: TypeMatcher<A>, b: TypeMatcher<B>, c: TypeMatcher<C>, d: TypeMatcher<D>, e: TypeMatcher<E>, f: TypeMatcher<F>, g: TypeMatcher<G>, h: TypeMatcher<H>, i: TypeMatcher<I>): TypeMatcher<[A, B, C, D, E, F, G, H, I]> {
   return function value(val: any): val is [A, B, C, D, E, F, G, H, I] {
-    return isExactArray(matcher, val);
+    return isExactArray([a, b, c, d, e, f, g, h, i], val);
   };
 }
 
-export function isTuple10<A, B, C, D, E, F, G, H, I, J>(matcher: [TypeMatcher<A>, TypeMatcher<B>, TypeMatcher<C>, TypeMatcher<D>, TypeMatcher<E>, TypeMatcher<F>, TypeMatcher<G>, TypeMatcher<H>, TypeMatcher<I>]): TypeMatcher<[A, B, C, D, E, F, G, H, I, J]> {
+export function isTuple10<A, B, C, D, E, F, G, H, I, J>(a: TypeMatcher<A>, b: TypeMatcher<B>, c: TypeMatcher<C>, d: TypeMatcher<D>, e: TypeMatcher<E>, f: TypeMatcher<F>, g: TypeMatcher<G>, h: TypeMatcher<H>, i: TypeMatcher<I>, j: TypeMatcher<J>): TypeMatcher<[A, B, C, D, E, F, G, H, I, J]> {
   return function value(val: any): val is [A, B, C, D, E, F, G, H, I, J] {
-    return isExactArray(matcher, val);
+    return isExactArray([a, b, c, d, e, f, g, h, i, j], val);
   };
 }
 
