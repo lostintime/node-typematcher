@@ -72,7 +72,7 @@ const u: User = match(input)(
 );
 
 ```
-Sometimes is simpler to use `switch/case` but unfortunately is not an expression.
+Sometimes is simpler to use `switch/case` but unfortunately not as an expression.
 
 For more examples - check links in documentation section.
 
