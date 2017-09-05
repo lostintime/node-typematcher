@@ -41,6 +41,13 @@ export function isNumber(value: any): value is number {
 }
 
 /**
+ * Match number values but not NaN or Infinite
+ */
+export function isFiniteNumber(value: any): value is number {
+  return isNumber(value) && !isNaN(value) && isFinite(value);
+}
+
+/**
  * Match boolean values
  */
 export function isBoolean(value: any): value is boolean {
@@ -92,28 +99,6 @@ export function isValue<T>(v: T): TypeMatcher<T> {
   }
 }
 
-
-/**
- * Match object fields by given matchers
- * hasFields({id: isNumber})({id: "aloha"}) => false
- */
-export function hasFields<T>(matcher: FieldsMatcher<T>): TypeMatcher<T> {
-  return function value(val: any): val is T {
-    if (isObject(val)) {
-      for (const pKey in matcher) {
-        if (val.hasOwnProperty(pKey) && !matcher[pKey]((<any>val)[pKey])) {
-          // one of required fields doesn't match, fail fast
-          return false;
-        }
-      }
-
-      return true;
-    }
-
-    return false;
-  };
-}
-
 const isNullF = isValue(null);
 
 /**
@@ -140,6 +125,30 @@ const isMissingF = isEither(isNull, isUndefined);
 export function isMissing(val: any): val is null | undefined {
   return isMissingF(val);
 }
+
+/**
+ * Match object fields by given matchers
+ * hasFields({id: isNumber})({id: "aloha"}) => false
+ */
+export function hasFields<T>(matcher: FieldsMatcher<T>): TypeMatcher<T> {
+  return function value(val: any): val is T {
+    if (isObject(val)) {
+      for (const pKey in matcher) {
+        const v = val.hasOwnProperty(pKey) ? (<any>val)[pKey] : undefined;
+
+        if (!matcher[pKey](v)) {
+          // one of required fields doesn't match, fail fast
+          return false;
+        }
+      }
+
+      return true;
+    }
+
+    return false;
+  };
+}
+
 
 /**
  * Given array of matchers, and array - match every value using matcher from same position
@@ -241,18 +250,14 @@ export function isEither<A, B>(matcher1: TypeMatcher<A>, matcher2: TypeMatcher<B
  * Builds new matcher for value which may be undefined
  */
 export function isOptional<T>(matcher: TypeMatcher<T>): TypeMatcher<T | undefined> {
-  return function value(val: any): val is T | undefined {
-    return isUndefined(val) || matcher(val);
-  };
+  return isEither(isUndefined, matcher);
 }
 
 /**
  * Builds new matcher for value which may be null
  */
 export function isNullable<T>(matcher: TypeMatcher<T>): TypeMatcher<T | null> {
-  return function value(val: any): val is T | null {
-    return isNull(val) || matcher(val);
-  };
+  return isEither(isNull, matcher);
 }
 
 /**

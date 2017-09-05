@@ -1,7 +1,8 @@
 import {expect} from 'chai';
 import {
-  isAny, isArrayOf, isBoolean, isFiniteNumber, isNever, isNumber, isObject,
-  isString
+  hasFields,
+  isAny, isArrayOf, isBoolean, isFiniteNumber, isMissing, isNever, isNull, isNumber, isObject,
+  isString, isUndefined, isValue
 } from "../lib";
 
 describe('Matchers', () => {
@@ -188,8 +189,192 @@ describe('Matchers', () => {
     })
   });
 
+  describe('isValue', () => {
+
+    it('should exactly match values', () => {
+      expect(isValue(10)(10)).equals(true);
+      expect(isValue("one")('one')).equals(true);
+      expect(isValue(true)(true)).equals(true);
+      expect(isValue(Infinity)(Infinity)).equals(true);
+      const x = new String("hello");
+      expect(isValue(x)(x)).equals(true);
+    });
+
+    it('should not match values with different types', () => {
+      expect(isValue("10")(10)).equals(false);
+      expect(isValue(0)(false)).equals(false);
+      expect(isValue(1)(true)).equals(false);
+      expect(isValue(NaN)(NaN)).equals(false);
+    });
+
+    it('should not match different values with same type', () => {
+      expect(isValue("10")("20")).equals(false);
+      expect(isValue(1)(1.1)).equals(false);
+      expect(isValue(true)(false)).equals(false);
+    });
+
+    it('should not match different object instances', () => {
+      expect(isValue(new String("hello"))(new String("hello"))).equals(false);
+      expect(isValue(new Number(10))(new Number(10))).equals(false);
+    });
+  });
+
+  describe('isNull', () => {
+
+    it('should match for null', () => {
+      expect(isNull(null)).equals(true);
+    });
+
+    it('should not match for values other than null', () => {
+      expect(isNull(NaN)).equals(false);
+      expect(isNull(Infinity)).equals(false);
+      expect(isNull(1)).equals(false);
+      expect(isNull(0)).equals(false);
+      expect(isNull(1.3)).equals(false);
+      expect(isNull("true")).equals(false);
+      expect(isNull(false)).equals(false);
+      expect(isNull({})).equals(false);
+      expect(isNull(undefined)).equals(false);
+    });
+  });
+
+  describe('isUndefined', () => {
+
+    it('should match for undefined', () => {
+      expect(isUndefined(undefined)).equals(true);
+    });
+
+    it('should not match for values other than undefined', () => {
+      expect(isUndefined(NaN)).equals(false);
+      expect(isUndefined(Infinity)).equals(false);
+      expect(isUndefined(1)).equals(false);
+      expect(isUndefined(0)).equals(false);
+      expect(isUndefined(1.3)).equals(false);
+      expect(isUndefined("true")).equals(false);
+      expect(isUndefined(false)).equals(false);
+      expect(isUndefined({})).equals(false);
+      expect(isUndefined(null)).equals(false);
+    });
+  });
+
+  describe('isMissing', () => {
+
+    it('should match for null or undefined', () => {
+      expect(isMissing(null)).equals(true);
+      expect(isMissing(undefined)).equals(true);
+    });
+
+    it('should not match for non null or undefined values', () => {
+      expect(isMissing(NaN)).equals(false);
+      expect(isMissing(Infinity)).equals(false);
+      expect(isMissing(1)).equals(false);
+      expect(isMissing(0)).equals(false);
+      expect(isMissing(1.3)).equals(false);
+      expect(isMissing("true")).equals(false);
+      expect(isMissing(false)).equals(false);
+      expect(isMissing({})).equals(false);
+    });
+  });
+
+  describe('hasFields', () => {
+
+    it('should match empty matcher/object', () => {
+      expect(hasFields({})({})).equals(true);
+    });
+
+    it('should accept extra fields', () => {
+      expect(hasFields({})({one: 1, two: 2})).equals(true);
+    });
+
+    it('should match object with matching fields', () => {
+      expect(hasFields({key: isNumber})({key: 10})).equals(true);
+      expect(hasFields({x: isValue(10)})({x: 10})).equals(true);
+      expect(hasFields({name: isString})({x: 10, y: 20, name: "testing"})).equals(true);
+      expect(hasFields({a: isValue("one"), b: isValue(20), c: isNull})({
+        a: "one",
+        b: 20,
+        c: null
+      })).equals(true);
+    });
+
+    it('should match missing fields for undefined matcher', () => {
+      expect(hasFields({key: isUndefined})({value: "aloha"})).equals(true);
+      expect(hasFields({key: isUndefined, value: isUndefined})({})).equals(true);
+    });
+
+    it('should not match objects with missing fields', () => {
+      expect(hasFields({key: isNumber})({})).equals(false);
+      expect(hasFields({key: isNumber, value: isString})({value: "aloha"})).equals(false);
+    });
+
+    it('should not match objects with wrong field types', () => {
+      expect(hasFields({key: isNumber})({key: "10"})).equals(false);
+      expect(hasFields({key: isValue("20")})({key: "10"})).equals(false);
+      expect(hasFields({key: isNumber, value: isNumber})({
+        key: 10,
+        value: "wrong number"
+      })).equals(false);
+    });
+  });
+
+  describe('isTuple1', () => {
+
+  });
+
+  describe('isTuple2', () => {
+
+  });
+
+  describe('isTuple3', () => {
+
+  });
+
+  describe('isTuple4', () => {
+
+  });
+
+  describe('isTuple5', () => {
+
+  });
+
+  describe('isTuple6', () => {
+
+  });
+
+  describe('isTuple7', () => {
+
+  });
+
+  describe('isTuple8', () => {
+
+  });
+
+  describe('isTuple9', () => {
+
+  });
+
+  describe('isTuple10', () => {
+
+  });
+
+  describe('isBoth', () => {
+
+  });
+
+  describe('isEither', () => {
+
+  });
+
+  describe('isOptional', () => {
+
+  });
+
+  describe('isNullable', () => {
+
+  });
 
 });
+
 
 describe('Match DSL', function () {
   // TODO test matching DSL
