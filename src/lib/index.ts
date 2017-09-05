@@ -273,12 +273,12 @@ export type CaseMiss = false
 /**
  * Success or Failure
  */
-export type MatchCaseResult<T> = CaseMatch<T> | CaseMiss
+export type CaseResult<T> = CaseMatch<T> | CaseMiss
 
 /**
  * Defines a case to be used with match
  */
-export type MatchCase<T> = (val: any) => MatchCaseResult<T>;
+export type MatchCase<T> = (val: any) => CaseResult<T>;
 
 
 /**
@@ -304,7 +304,7 @@ export function match(val: any): <R>(...cases: MatchCase<R>[]) => R {
  */
 export function caseWhen<T>(matcher: TypeMatcher<T>): <U>(h: (v: T) => U) => MatchCase<U> {
   return function map<U>(f: (v: T) => U): MatchCase<U> {
-    return function value(val: any): MatchCaseResult<U> {
+    return function value(val: any): CaseResult<U> {
       if (matcher(val)) {
         return {match: f(val)};
       }
@@ -326,6 +326,13 @@ export function caseAny<U>(h: (val: any) => U): MatchCase<U> {
  */
 export function caseDefault<U>(h: () => U): MatchCase<U> {
   return caseAny(() => h());
+}
+
+/**
+ * Identity case
+ */
+export function caseId<T>(matcher: TypeMatcher<T>): MatchCase<T> {
+  return caseWhen(matcher)(v => v);
 }
 
 /**

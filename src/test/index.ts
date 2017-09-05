@@ -4,7 +4,8 @@ import {
   isAny, isArrayOf, isBoolean, isFiniteNumber, isMissing, isNever, isNull, isNumber, isObject,
   isString, isUndefined, isValue,
   isTuple1, isTuple2, isTuple3, isTuple4, isTuple5, isTuple6, isTuple7, isTuple8, isTuple9,
-  isTuple10, isBoth, isEither, isOptional, isNullable
+  isTuple10, isBoth, isEither, isOptional, isNullable,
+  match, caseWhen, caseAny, caseDefault, caseThrow, caseId,
 } from "../lib";
 
 describe('Matchers', () => {
@@ -639,5 +640,72 @@ describe('Matchers', () => {
 
 
 describe('Match DSL', function () {
-  // TODO test matching DSL
+  describe('match', () => {
+    it('will return first matched case value', () => {
+      expect(match(10)(caseId(isValue(10)))).equals(10, 'caseId returns input value if matched');
+
+      expect(match(10)(
+        caseWhen(isString)(s => `got string ${s}`),
+        caseWhen(isNumber)(n => `got number ${n}`)
+      )).equals("got number 10", 'returned first matched');
+      expect(match("hello")(
+        caseWhen(isNumber)(n => ""),
+        caseAny(v => `got value "${v}"`)
+      )).equals('got value "hello"', 'caseAny matches any value');
+
+      expect(match(333)(
+        caseDefault(() => 20),
+        caseId(isNumber)
+      )).equals(20, 'caseDefault returns first');
+    });
+
+    it('will throw if no case matched', () => {
+      expect(() => match(10)()).throws();
+      expect(() => match("hello")(caseWhen(isNumber)(n => n * 2))).throws();
+    });
+  });
+
+  describe('caseWhen', () => {
+    it('will return CaseMatch on match', () => {
+      const m = caseWhen(isNumber)(n => n * 2)(10);
+      expect(isObject(m)).equals(true, 'CaseMatch is an object');
+      expect(hasFields({match: isValue(20)})(m)).equals(true, 'CaseMatch has "match" field with valid 20');
+    });
+
+    it('will return CaseMiss on match fail', () => {
+      const m = caseWhen(isString)(s => `${s}:${s}`)(20);
+      expect(isValue(false)(m)).equals(true, 'CaseMiss is a boolean false');
+    });
+  });
+
+  describe('caseId', () => {
+    it('will pass input value on match', () => {
+      expect(match(10)(caseId(isNumber))).equals(10);
+      expect(match("test")(caseId(isValue("test")))).equals("test");
+    });
+
+    it('will throw if not matched', () => {
+      expect(() => match(10)(caseId(isString))).throws();
+    });
+  });
+
+  describe('caseAny', () => {
+    it('will return CaseMatch on an value', () => {
+      expect(hasFields({match: isString})(caseAny(v => `${v}`)(10))).equals(true);
+      expect(hasFields({match: isString})(caseAny(v => `${v}`)(""))).equals(true);
+      expect(hasFields({match: isString})(caseAny(v => `${v}`)(true))).equals(true);
+    })
+  });
+
+  describe('caseDefault', () => {
+    it('will return handler result', () => {
+      expect(hasFields({match: isValue("a")})(caseDefault(() => "a")(null))).equals(true);
+    });
+  });
+
+  describe('caseThrow', () => {
+    it('will throw given error', () => {
+      expect(() => caseThrow(new Error('fail here'))).to.throw();
+    });
+  });
 });
