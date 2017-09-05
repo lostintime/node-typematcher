@@ -9,9 +9,7 @@ import {
 } from "../lib";
 
 describe('Matchers', () => {
-
   describe('isAny', () => {
-
     it('should match any input', () => {
       expect(isAny(false)).equals(true);
       expect(isAny(NaN)).equals(true);
@@ -27,7 +25,6 @@ describe('Matchers', () => {
   });
 
   describe('isNever', () => {
-
     it('should never match any input', () => {
       expect(isNever(false)).equals(false);
       expect(isNever(NaN)).equals(false);
@@ -43,7 +40,6 @@ describe('Matchers', () => {
   });
 
   describe('isString', () => {
-
     it('should match string input', () => {
       expect(isString("aloha")).equals(true);
       expect(isString('aloha2')).equals(true);
@@ -67,7 +63,6 @@ describe('Matchers', () => {
   });
 
   describe('isNumber', () => {
-
     it('should match number input', () => {
       expect(isNumber(10)).equals(true);
       expect(isNumber(3.4)).equals(true);
@@ -89,7 +84,6 @@ describe('Matchers', () => {
   });
 
   describe('isFiniteNumber', () => {
-
     it('should match number input', () => {
       expect(isFiniteNumber(10)).equals(true);
       expect(isFiniteNumber(3.4)).equals(true);
@@ -110,7 +104,6 @@ describe('Matchers', () => {
   });
 
   describe('isBoolean', () => {
-
     it('should match boolean values', () => {
       expect(isBoolean(true)).equals(true);
       expect(isBoolean(false)).equals(true);
@@ -131,7 +124,6 @@ describe('Matchers', () => {
   });
 
   describe('isObject', () => {
-
     it('should match any object', () => {
       expect(isObject({})).equals(true);
       expect(isObject([])).equals(true);
@@ -154,7 +146,6 @@ describe('Matchers', () => {
   });
 
   describe('isArrayOf', () => {
-
     it('should match empty arrays', () => {
       expect(isArrayOf(isNumber)([])).equals(true);
       expect(isArrayOf(isFiniteNumber)([])).equals(true);
@@ -193,7 +184,6 @@ describe('Matchers', () => {
   });
 
   describe('isValue', () => {
-
     it('should exactly match values', () => {
       expect(isValue(10)(10)).equals(true);
       expect(isValue("one")('one')).equals(true);
@@ -223,7 +213,6 @@ describe('Matchers', () => {
   });
 
   describe('isNull', () => {
-
     it('should match for null', () => {
       expect(isNull(null)).equals(true);
     });
@@ -242,7 +231,6 @@ describe('Matchers', () => {
   });
 
   describe('isUndefined', () => {
-
     it('should match for undefined', () => {
       expect(isUndefined(undefined)).equals(true);
     });
@@ -261,7 +249,6 @@ describe('Matchers', () => {
   });
 
   describe('isMissing', () => {
-
     it('should match for null or undefined', () => {
       expect(isMissing(null)).equals(true);
       expect(isMissing(undefined)).equals(true);
@@ -280,7 +267,6 @@ describe('Matchers', () => {
   });
 
   describe('hasFields', () => {
-
     it('should match empty matcher/object', () => {
       expect(hasFields({})({})).equals(true);
     });
@@ -635,28 +621,23 @@ describe('Matchers', () => {
       expect(isNullable(isValue(-1))(undefined)).equals(false);
     });
   });
-
 });
 
 
 describe('Match DSL', function () {
   describe('match', () => {
     it('will return first matched case value', () => {
-      expect(match(10)(caseId(isValue(10)))).equals(10, 'caseId returns input value if matched');
+      expect(match(10)(caseId(isValue(10))))
+        .equals(10, 'caseId returns input value if matched');
 
-      expect(match(10)(
-        caseWhen(isString)(s => `got string ${s}`),
-        caseWhen(isNumber)(n => `got number ${n}`)
-      )).equals("got number 10", 'returned first matched');
-      expect(match("hello")(
-        caseWhen(isNumber)(n => ""),
-        caseAny(v => `got value "${v}"`)
-      )).equals('got value "hello"', 'caseAny matches any value');
+      expect(match(10)(caseWhen(isString)(s => `got string ${s}`), caseWhen(isNumber)(n => `got number ${n}`)))
+        .equals("got number 10", 'returned first matched');
 
-      expect(match(333)(
-        caseDefault(() => 20),
-        caseId(isNumber)
-      )).equals(20, 'caseDefault returns first');
+      expect(match("hello")(caseWhen(isNumber)(n => ""), caseAny(v => `got value "${v}"`)))
+        .equals('got value "hello"', 'caseAny matches any value');
+
+      expect(match(333)(caseDefault(() => 20), caseId(isNumber)))
+        .equals(20, 'caseDefault returns first');
     });
 
     it('will throw if no case matched', () => {
