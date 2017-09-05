@@ -1,6 +1,5 @@
 {
   "name": "typematcher",
-  "private": true,
   "version": "0.1.0",
   "description": "Type matching library for TypeScript",
   "main": "dist/lib/index.js",
