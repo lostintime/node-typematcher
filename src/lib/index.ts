@@ -329,4 +329,3 @@ export function caseDefault<U>(h: () => U): MatchCase<U> {
 export function caseThrow<U>(err: Error): MatchCase<U> {
   throw err;
 }
-
