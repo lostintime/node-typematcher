@@ -6,7 +6,9 @@
   "main": "dist/lib/index.js",
   "types": "dist/lib/index.d.ts",
   "scripts": {
-    "test": "tsc && mocha \"dist/test/\""
+    "test": "tsc && mocha \"dist/test/\"",
+    "clean": "rm -R dist/",
+    "build": "tsc"
   },
   "keywords": [
     "typescript",
