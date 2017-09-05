@@ -14,7 +14,7 @@ This library provides constructions to _cover your Input_ with type checks.
 ## Installation
 
 ```
-TBD
+npm install --save typematcher
 ```
 
 ## Usage examples
@@ -112,4 +112,4 @@ Fork, Contribute, Push, Create pull request, Thanks.
 
 ## Documentation
 
-`TBD`
+Check latest sources on github: https://github.com/lostintime/node-typematcher
