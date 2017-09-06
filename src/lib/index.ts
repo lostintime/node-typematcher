@@ -303,7 +303,7 @@ export function matchWith<R>(...cases: MatchCase<R>[]): (val: any) => R {
  * This method should be used with caseWhen, caseAny, caseDefault methods
  */
 export function match(val: any): <R>(...cases: MatchCase<R>[]) => R {
-  return function against<R>(...cases: MatchCase<R>[]): R {
+  return function cases<R>(...cases: MatchCase<R>[]): R {
     return matchWith(...cases)(val);
   };
 }
