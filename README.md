@@ -21,7 +21,7 @@ npm install --save typematcher
 
 TypeMatcher library contains 2 main components:
  
-  * type matchers - functions to check values type
+  * type matchers - functions to check value matches a type
   * matching dsl - constructs to match required type for given input
 
 `TypeMatcher` is only an alias for a function returning `true` if its argument type matches:
@@ -32,7 +32,7 @@ type TypeMatcher<T> = (val: any) => val is T
 
 Some type matchers: `isString`, `isNumber`, `isArrayOf`, `isTuple1`.
 
-Matching DSL consists 2 main of functions: `match`, `caseWhen` and few aliases to make
+Matching DSL consists of 2 main functions: `match`, `caseWhen` and few aliases to make
 code more readable: `caseAny`, `caseDefault`, `caseId` and `caseThrow`. 
 
 Example:
