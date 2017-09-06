@@ -280,14 +280,12 @@ export type CaseResult<T> = CaseMatch<T> | CaseMiss
  */
 export type MatchCase<T> = (val: any) => CaseResult<T>;
 
-
 /**
- * Match value against all given matchers, return when on first match,
- * Throws error if none matched
- * This method should be used with caseWhen, caseAny, caseDefault methods
+ * matchWith is same as match() only with inverse arguments order,
+ * this can be used to pre-build matchers and save some CPU cycles
  */
-export function match(val: any): <R>(...cases: MatchCase<R>[]) => R {
-  return function against<R>(...cases: MatchCase<R>[]): R {
+export function matchWith<R>(...cases: MatchCase<R>[]): (val: any) => R {
+  return function value(val: any): R {
     for (const m of cases) {
       const r = m(val);
       if (r !== false) {
@@ -296,6 +294,17 @@ export function match(val: any): <R>(...cases: MatchCase<R>[]) => R {
     }
 
     throw new Error("No match");
+  }
+}
+
+/**
+ * Match value against all given matchers, return when on first match,
+ * Throws error if none matched
+ * This method should be used with caseWhen, caseAny, caseDefault methods
+ */
+export function match(val: any): <R>(...cases: MatchCase<R>[]) => R {
+  return function against<R>(...cases: MatchCase<R>[]): R {
+    return matchWith(...cases)(val);
   };
 }
 

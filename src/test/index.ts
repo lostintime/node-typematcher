@@ -646,6 +646,18 @@ describe('Match DSL', function () {
     });
   });
 
+  describe('matchWith', () => {
+    it('will return first matched case value', () => {
+      expect(match(15)(caseId(isValue(15))))
+        .equals(15, 'caseId returns input value if matched');
+    });
+
+    it('will throw if no case matched', () => {
+      expect(() => match(true)()).throws();
+      expect(() => match("aloha")(caseWhen(isNumber)(n => n * 2))).throws();
+    });
+  });
+
   describe('caseWhen', () => {
     it('will return CaseMatch on match', () => {
       const m = caseWhen(isNumber)(n => n * 2)(10);
