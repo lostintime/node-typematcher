@@ -1,20 +1,28 @@
 {
   "name": "typematcher",
-  "version": "0.2.0",
+  "author": "lostintime",
+  "version": "0.2.1",
   "description": "Type matching library for TypeScript",
   "main": "dist/lib/index.js",
   "types": "dist/lib/index.d.ts",
+  "keywords": [
+    "TypeScript",
+    "typematch",
+    "pattern matching",
+    "type safe"
+  ],
+  "bugs": {
+    "url": "https://github.com/lostintime/node-typematcher/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lostintime/node-typematcher.git"
+  },
   "scripts": {
     "test": "tsc && mocha \"dist/test/\"",
     "clean": "rm -R dist/",
     "build": "tsc"
   },
-  "keywords": [
-    "typescript",
-    "typematch",
-    "typesafe"
-  ],
-  "author": "lostintime",
   "license": "MIT",
   "devDependencies": {
     "@types/chai": "^4.0.4",
