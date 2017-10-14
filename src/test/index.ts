@@ -5,7 +5,7 @@ import {
   isString, isUndefined, isValue,
   isTuple1, isTuple2, isTuple3, isTuple4, isTuple5, isTuple6, isTuple7, isTuple8, isTuple9,
   isTuple10, isBoth, isEither, isOptional, isNullable,
-  match, caseWhen, caseAny, caseDefault, caseThrow, caseId,
+  match, caseWhen, caseAny, caseDefault, caseThrow, caseId, failWith,
 } from "../lib";
 
 describe('Matchers', () => {
@@ -619,6 +619,18 @@ describe('Matchers', () => {
       expect(isNullable(isValue(-1))(false)).equals(false);
       expect(isNullable(isValue(-1))({})).equals(false);
       expect(isNullable(isValue(-1))(undefined)).equals(false);
+    });
+  });
+
+  describe('failWith', () => {
+    it('will return true on match', () => {
+      expect(failWith(new Error('Invalid value, string expected'))(isString)("aloha"))
+        .equals(true, 'new matcher returns true');
+    });
+
+    it('will throw on matcher miss', () => {
+      expect(() => failWith(new Error('Invalid value, string expected'))(isString)(10))
+        .to.throw('Invalid value, string expected');
     });
   });
 });

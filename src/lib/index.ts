@@ -261,6 +261,33 @@ export function isNullable<T>(matcher: TypeMatcher<T>): TypeMatcher<T | null> {
 }
 
 /**
+ * Builds new matcher which throws an error on miss
+ * Can be used to provide more useful errors in combination with hasFields() and match()/matchWith()
+ *
+ * ```
+ * const result = matchWith(
+ *   caseId(
+ *     hasFields({
+ *       title: failWith(new Error("Invalid title: string expected"))(isString),
+ *       description: failWith(new Error('Invalid description: string or undefined expected'))(isOptional(isString)),
+ *     })
+ *   )
+ * )
+ * ```
+ */
+export function failWith(err: Error): <T>(matcher: TypeMatcher<T>) => TypeMatcher<T> {
+  return function on<T>(matcher: TypeMatcher<T>): TypeMatcher<T> {
+    return function value(val: any): val is T {
+      if (matcher(val)) {
+        return true;
+      }
+
+      throw err;
+    }
+  }
+}
+
+/**
  * Success case match result
  */
 export type CaseMatch<T> = { match: T }
