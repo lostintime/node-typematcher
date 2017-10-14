@@ -348,5 +348,7 @@ export function caseId<T>(matcher: TypeMatcher<T>): MatchCase<T> {
  * Just a wrapper to throw given error
  */
 export function caseThrow<U>(err: Error): MatchCase<U> {
-  throw err;
+  return (val: any) => {
+    throw err;
+  };
 }

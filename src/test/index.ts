@@ -697,8 +697,18 @@ describe('Match DSL', function () {
   });
 
   describe('caseThrow', () => {
+    it('will not throw when just called', () => {
+      expect(() => caseThrow<number>(new Error('This should not be thrown'))).to.not.throw();
+    });
+
+    it('will not throw if matched before', () => {
+      expect(() => match(10)(caseId(isNumber), caseThrow(new Error('Fail if not number'))))
+        .to.not.throw();
+    });
+
     it('will throw given error', () => {
-      expect(() => caseThrow(new Error('fail here'))).to.throw();
+      expect(() => match(10)(caseThrow(new Error('No matches before this'))))
+        .to.throw('No matches before this');
     });
   });
 });
