@@ -710,7 +710,7 @@ describe('Match DSL', function () {
 
   describe('caseThrow', () => {
     it('will not throw when just called', () => {
-      expect(() => caseThrow<number>(new Error('This should not be thrown'))).to.not.throw();
+      expect(() => caseThrow(new Error('This should not be thrown'))).to.not.throw();
     });
 
     it('will not throw if matched before', () => {

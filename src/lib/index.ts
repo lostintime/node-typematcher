@@ -9,6 +9,11 @@ export type TypeMatcher<T> = (val: any) => val is T;
 export type FieldsMatcher<T> = { [P in keyof T]: TypeMatcher<T[P]> };
 
 /**
+ * Type alias for errors
+ */
+export type Throwable = Error | Object
+
+/**
  * Match any of input values
  */
 export function isAny(val: any): val is any {
@@ -275,7 +280,7 @@ export function isNullable<T>(matcher: TypeMatcher<T>): TypeMatcher<T | null> {
  * )
  * ```
  */
-export function failWith(err: Error): <T>(matcher: TypeMatcher<T>) => TypeMatcher<T> {
+export function failWith(err: Throwable): <T>(matcher: TypeMatcher<T>) => TypeMatcher<T> {
   return function on<T>(matcher: TypeMatcher<T>): TypeMatcher<T> {
     return function value(val: any): val is T {
       if (matcher(val)) {
@@ -374,7 +379,7 @@ export function caseId<T>(matcher: TypeMatcher<T>): MatchCase<T> {
 /**
  * Just a wrapper to throw given error
  */
-export function caseThrow<U>(err: Error): MatchCase<U> {
+export function caseThrow<U>(err: Throwable): MatchCase<U> {
   return (val: any) => {
     throw err;
   };
