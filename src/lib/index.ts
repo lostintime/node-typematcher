@@ -72,6 +72,16 @@ export function isObject(value: any): value is object {
 
 
 /**
+ * Check value built with given constructor function
+ */
+export function isInstanceOf<T>(fnCtor: new (...args: any[]) => T): TypeMatcher<T> {
+  return function value(val: any): val is T {
+    return val instanceof fnCtor;
+  }
+}
+
+
+/**
  * Match input value is array of T using given matcher
  * isArrayOf(isString)([1]) => false
  * isArrayOf(isNumber)([1]) => true

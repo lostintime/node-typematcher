@@ -5,7 +5,7 @@ import {
   isString, isUndefined, isValue,
   isTuple1, isTuple2, isTuple3, isTuple4, isTuple5, isTuple6, isTuple7, isTuple8, isTuple9,
   isTuple10, isBoth, isEither, isOptional, isNullable,
-  match, caseWhen, caseAny, caseDefault, caseThrow, caseId, failWith,
+  match, caseWhen, caseAny, caseDefault, caseThrow, caseId, failWith, isInstanceOf,
 } from "../lib";
 
 describe('Matchers', () => {
@@ -143,6 +143,31 @@ describe('Matchers', () => {
       expect(isObject(null)).equals(false);
       expect(isObject(undefined)).equals(false);
     });
+  });
+
+
+  describe('isInstanceOf', () => {
+    it('will test instances created with provided constructors', () => {
+      class A {
+      }
+
+      class B {
+      }
+
+      class C extends A {
+      }
+
+      const a = new A();
+      const b = new B();
+      const c = new C();
+
+      expect(isInstanceOf(A)(a)).equals(true, 'a is A');
+      expect(isInstanceOf(B)(b)).equals(true, 'b is B');
+      expect(isInstanceOf(A)(b)).equals(false, 'b is not A');
+      expect(isInstanceOf(B)(a)).equals(false, 'a is not B');
+      expect(isInstanceOf(C)(c)).equals(true, 'c is C');
+      expect(isInstanceOf(A)(c)).equals(true, 'c is A');
+    })
   });
 
   describe('isArrayOf', () => {
