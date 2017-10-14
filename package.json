@@ -2,6 +2,7 @@
   "name": "typematcher",
   "author": "lostintime",
   "version": "0.2.1",
+  "license": "MIT",
   "description": "Type matching library for TypeScript",
   "main": "dist/lib/index.js",
   "types": "dist/lib/index.d.ts",
@@ -23,12 +24,11 @@
     "clean": "rm -R dist/",
     "build": "tsc"
   },
-  "license": "MIT",
   "devDependencies": {
     "@types/chai": "^4.0.4",
-    "@types/mocha": "^2.2.42",
+    "@types/mocha": "^2.2.43",
     "chai": "^4.1.2",
-    "mocha": "^3.5.0",
-    "typescript": "^2.5.2"
+    "mocha": "^3.5.3",
+    "typescript": "^2.5.3"
   }
 }
