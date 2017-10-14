@@ -113,3 +113,5 @@ Fork, Contribute, Push, Create pull request, Thanks.
 ## Documentation
 
 Check latest sources on github: https://github.com/lostintime/node-typematcher
+
+Funfix binding: [https://github.com/lostintime/node-typematcher-funfix](https://github.com/lostintime/node-typematcher-funfix).
