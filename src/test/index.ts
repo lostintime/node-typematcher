@@ -5,7 +5,7 @@ import {
   isString, isUndefined, isValue,
   isTuple1, isTuple2, isTuple3, isTuple4, isTuple5, isTuple6, isTuple7, isTuple8, isTuple9,
   isTuple10, isBoth, isEither, isOptional, isNullable,
-  match, caseWhen, caseAny, caseDefault, caseThrow, caseId, failWith, isInstanceOf,
+  match, caseWhen, caseAny, caseDefault, caseThrow, caseId, failWith, isInstanceOf, isObjectMapOf
 } from "../lib";
 
 describe('Matchers', () => {
@@ -341,6 +341,37 @@ describe('Matchers', () => {
       expect(hf(1.3)).equals(false);
       expect(hf("true")).equals(false);
       expect(hf(false)).equals(false);
+    });
+  });
+
+  describe('isObjectMapOf', () => {
+    it('should match objects with matching properties', () => {
+      expect(isObjectMapOf(isString)({"one": "one", "two": "two"})).equals(true);
+      expect(isObjectMapOf(isString)({1: "one", 2: "two"})).equals(true);
+      expect(isObjectMapOf(isString)({1: "one", "two": "two"})).equals(true);
+      expect(isObjectMapOf(isNumber)({"one": 1, "two": 2})).equals(true);
+      expect(isObjectMapOf(isBoolean)({"one": true, "two": false})).equals(true);
+      expect(isObjectMapOf(isBoolean)({1: true, 2: false})).equals(true);
+
+      class Z {
+        readonly x: boolean;
+
+        constructor(x: boolean) {
+          this.x = x;
+        }
+      }
+
+      expect(isObjectMapOf(isBoolean)(new Z(true))).equals(true);
+      expect(isObjectMapOf(isNumber)(new Z(true))).equals(false);
+    });
+
+    it('should not match if at least one property doesn\'t match', () => {
+      expect(isObjectMapOf(isString)({"one": "one", "two": 2})).equals(false);
+      expect(isObjectMapOf(isNumber)({"one": 1, "two": false})).equals(false);
+      expect(isObjectMapOf(isBoolean)({"one": true, "two": "true"})).equals(false);
+      expect(isObjectMapOf(isBoolean)({"one": true, "two": 2})).equals(false);
+      expect(isObjectMapOf(isBoolean)({"one": true, "two": {}})).equals(false);
+      expect(isObjectMapOf(isBoolean)({"one": true, "two": []})).equals(false);
     });
   });
 

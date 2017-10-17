@@ -164,6 +164,23 @@ export function hasFields<T>(matcher: FieldsMatcher<T>): TypeMatcher<T> {
   };
 }
 
+export type ObjectMapOf<T> = {[K in string]: T};
+
+export function isObjectMapOf<T>(matcher: TypeMatcher<T>): TypeMatcher<ObjectMapOf<T>> {
+  return function value(val: any): val is ObjectMapOf<T> {
+    if (isObject(val)) {
+      for (const pKey in val) {
+        if (!val.hasOwnProperty(pKey) || !matcher((<any>val)[pKey])) {
+          return false
+        }
+      }
+
+      return true;
+    }
+
+    return false;
+  }
+}
 
 /**
  * Given array of matchers, and array - match every value using matcher from same position
