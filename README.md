@@ -85,7 +85,7 @@ You may set more specific type, but check will bring you more general one and co
 This is caused by TypeScript [Function Parameter Bivariance](https://www.typescriptlang.org/docs/handbook/type-compatibility.html).
 
 ```typescript
-match(8)(caseWhen(isNumber)((n: 10) => "n is 10");
+match(8)(caseWhen(isNumber)((n: 10) => "n is 10"));
 ```
 
 vs
@@ -96,6 +96,20 @@ match(8)(caseWhen(isNumber)(n => {
   return "n is 10"
 }));
 ```
+
+__UPD__: Typescript v2.6 brings `--strictFunctionTypes` compiler option and if it's on, for this code:
+ 
+```typescript
+match(8)(caseWhen(isNumber)((n: 10) => "n is 10"));
+```
+you will now get this error:
+
+```
+error TS2345: Argument of type '(n: 10) => string' is not assignable to parameter of type '(v: number) => string'.
+  Types of parameters 'n' and 'v' are incompatible.
+    Type 'number' is not assignable to type '10'.
+```
+
 
 ### Use `caseDefault` at the end
 
