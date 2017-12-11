@@ -21,14 +21,18 @@
   },
   "scripts": {
     "test": "tsc && mocha \"dist/test/\"",
+    "lint": "tslint --project tsconfig.json",
     "clean": "rm -R dist/",
     "build": "tsc"
   },
   "devDependencies": {
-    "@types/chai": "^4.0.4",
-    "@types/mocha": "^2.2.43",
+    "@types/chai": "^4.0.8",
+    "@types/mocha": "^2.2.44",
     "chai": "^4.1.2",
-    "mocha": "^3.5.3",
-    "typescript": "^2.6.1"
+    "mocha": "^4.0.1",
+    "tslint": "^5.8.0",
+    "tslint-config-standard": "^7.0.0",
+    "tslint-eslint-rules": "^4.1.1",
+    "typescript": "^2.6.2"
   }
 }
