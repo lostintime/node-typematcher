@@ -19,6 +19,11 @@ export type TypeMatcher<T> = (val: any) => val is T
 export type FieldsMatcher<T> = { [P in keyof T]: TypeMatcher<T[P]> }
 
 /**
+ * Simple type alias to mark refined types, do not use _tag property!
+ */
+export type Refined<T> = { readonly __tag: T }
+
+/**
  * Type alias for errors
  */
 export type Throwable = Error | Object
@@ -297,6 +302,21 @@ export function isOptional<T>(matcher: TypeMatcher<T>): TypeMatcher<T | undefine
  */
 export function isNullable<T>(matcher: TypeMatcher<T>): TypeMatcher<T | null> {
   return isEither(isNull, matcher)
+}
+
+/**
+ * Build refined type matcher, ex:
+ * const isPositive: TypeMatcher<number & Refined<"Positive">> = refined(isFiniteNumber)(_ => _ > 0, "Positive")
+ * isPositive(1) === true
+ * isPositive(0) === false
+ * isPositive(-1) === false
+ */
+export function refined<U>(m: TypeMatcher<U>): <T extends string>(fn: (_: U) => boolean, tag: T) => TypeMatcher<U & Refined<T>> {
+  return <T extends string>(fn: (_: U) => boolean, tag: T): TypeMatcher<U & Refined<T>> => {
+    const refn = fn as ((val: U) => val is (U & Refined<T>))
+
+    return (_: any): _ is U & Refined<T> => m(_) && refn(_)
+  }
 }
 
 /**

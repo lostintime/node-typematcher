@@ -26,11 +26,11 @@
     "build": "tsc"
   },
   "devDependencies": {
-    "@types/chai": "^4.0.8",
-    "@types/mocha": "^2.2.44",
+    "@types/chai": "^4.1.2",
+    "@types/mocha": "^2.2.47",
     "chai": "^4.1.2",
-    "mocha": "^4.0.1",
-    "tslint": "^5.8.0",
+    "mocha": "^4.1.0",
+    "tslint": "^5.9.1",
     "tslint-config-standard": "^7.0.0",
     "tslint-eslint-rules": "^4.1.1",
     "typescript": "^2.6.2"
