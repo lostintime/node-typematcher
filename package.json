@@ -1,7 +1,7 @@
 {
   "name": "typematcher",
   "author": "lostintime",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "license": "MIT",
   "description": "Type matching library for TypeScript",
   "main": "dist/lib/index.js",
