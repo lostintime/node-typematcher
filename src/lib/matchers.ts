@@ -21,7 +21,7 @@ export type FieldsMatcher<T> = { [P in keyof T]: TypeMatcher<T[P]> }
 /**
  * Simple type alias to mark refined types, do not use _tag property!
  */
-export type Refined<T> = { readonly __tag: T }
+export type Refined<U, T> = U & { readonly __tag: T }
 
 /**
  * Type alias for errors
@@ -311,11 +311,11 @@ export function isNullable<T>(matcher: TypeMatcher<T>): TypeMatcher<T | null> {
  * isPositive(0) === false
  * isPositive(-1) === false
  */
-export function refined<U>(m: TypeMatcher<U>): <T extends string>(fn: (_: U) => boolean, tag: T) => TypeMatcher<U & Refined<T>> {
-  return <T extends string>(fn: (_: U) => boolean, tag: T): TypeMatcher<U & Refined<T>> => {
-    const refn = fn as ((val: U) => val is (U & Refined<T>))
+export function refined<U>(m: TypeMatcher<U>): <T extends string>(fn: (_: U) => boolean, tag: T) => TypeMatcher<Refined<U, T>> {
+  return <T extends string>(fn: (_: U) => boolean, tag: T): TypeMatcher<Refined<U, T>> => {
+    const refn = fn as ((val: U) => val is (Refined<U, T>))
 
-    return (_: any): _ is U & Refined<T> => m(_) && refn(_)
+    return (_: any): _ is Refined<U, T> => m(_) && refn(_)
   }
 }
 

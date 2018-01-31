@@ -690,7 +690,7 @@ describe("Matchers", () => {
 
   describe("refined", () => {
     it("should return a TypeMatcher for a refined type", () => {
-      const match: TypeMatcher<number & Refined<"Positive">> = refined(isNumber)(_ => _ > 0, "Positive")
+      const match: TypeMatcher<Refined<number, "Positive">> = refined(isNumber)(_ => _ > 0, "Positive")
       expect(match(1)).equals(true, "1 is positive")
       // You may be wondering is 0 positive or not?! Answer: it depends ... it doesn't matter for this test
       expect(match(0)).equals(false, "0 is not positive (?)")
@@ -698,14 +698,14 @@ describe("Matchers", () => {
     })
 
     it("works with isBoth", () => {
-      const isGreaterThan10: TypeMatcher<number & Refined<"GreaterThan10">> = refined(isNumber)(_ => _ > 10, "GreaterThan10")
-      const isLowerThan20: TypeMatcher<number & Refined<"LowerThan20">> = refined(isNumber)(_ => _ < 20, "LowerThan20")
+      const isGreaterThan10: TypeMatcher<Refined<number, "GreaterThan10">> = refined(isNumber)(_ => _ > 10, "GreaterThan10")
+      const isLowerThan20: TypeMatcher<Refined<number, "LowerThan20">> = refined(isNumber)(_ => _ < 20, "LowerThan20")
 
       // some type tests, by compiler
-      const inRange: TypeMatcher<number & Refined<"GreaterThan10"> & Refined<"LowerThan20">> = isBoth(isGreaterThan10, isLowerThan20)
+      const inRange: TypeMatcher<Refined<number, "GreaterThan10" & "LowerThan20">> = isBoth(isGreaterThan10, isLowerThan20)
       const a: TypeMatcher<number> = isGreaterThan10
-      const b: TypeMatcher<number & Refined<"GreaterThan10">> = inRange
-      const c: TypeMatcher<number & Refined<"LowerThan20">> = inRange
+      const b: TypeMatcher<Refined<number, "GreaterThan10">> = inRange
+      const c: TypeMatcher<Refined<number, "LowerThan20">> = inRange
 
       expect(isGreaterThan10(11)).equals(true)
       expect(isGreaterThan10(10)).equals(false)
@@ -719,13 +719,12 @@ describe("Matchers", () => {
     })
 
     it("works with isEither", () => {
-      const isGreaterThan20: TypeMatcher<number & Refined<"GreaterThan20">> = refined(isNumber)(_ => _ > 20, "GreaterThan20")
-      const isLowerThan10: TypeMatcher<number & Refined<"LowerThan10">> = refined(isNumber)(_ => _ < 10, "LowerThan10")
+      const isGreaterThan20: TypeMatcher<Refined<number, "GreaterThan20">> = refined(isNumber)(_ => _ > 20, "GreaterThan20")
+      const isLowerThan10: TypeMatcher<Refined<number, "LowerThan10">> = refined(isNumber)(_ => _ < 10, "LowerThan10")
 
       // some type tests, by compiler
-      const inRange: TypeMatcher<(number & Refined<"GreaterThan20">) | (number & Refined<"LowerThan10">)> = isEither(isGreaterThan20, isLowerThan10)
-      const inRange2: TypeMatcher<number & Refined<"GreaterThan20" | "LowerThan10">> = isEither(isGreaterThan20, isLowerThan10)
-      const inRange3: TypeMatcher<number & (Refined<"GreaterThan20"> | Refined<"LowerThan10">)> = isEither(isGreaterThan20, isLowerThan10)
+      const inRange: TypeMatcher<Refined<number, "GreaterThan20"> | Refined<number, "LowerThan10">> = isEither(isGreaterThan20, isLowerThan10)
+      const inRange2: TypeMatcher<Refined<number, "GreaterThan20" | "LowerThan10">> = isEither(isGreaterThan20, isLowerThan10)
 
       const a: TypeMatcher<number> = isGreaterThan20
 
