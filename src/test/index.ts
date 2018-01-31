@@ -10,11 +10,12 @@
 
 import { expect } from "chai"
 import {
+  TypeMatcher, Refined,
   hasFields,
   isAny, isArrayOf, isBoolean, isFiniteNumber, isMissing, isNever, isNull, isNumber, isObject,
   isString, isUndefined, isValue,
   isTuple1, isTuple2, isTuple3, isTuple4, isTuple5, isTuple6, isTuple7, isTuple8, isTuple9,
-  isTuple10, isBoth, isEither, isOptional, isNullable,
+  isTuple10, isBoth, isEither, isOptional, isNullable, refined,
   match, caseWhen, caseAny, caseDefault, caseThrow, caseId, failWith, isInstanceOf, isObjectMapOf
 } from "../lib"
 
@@ -684,6 +685,59 @@ describe("Matchers", () => {
       expect(isNullable(isValue(-1))(false)).equals(false)
       expect(isNullable(isValue(-1))({})).equals(false)
       expect(isNullable(isValue(-1))(undefined)).equals(false)
+    })
+  })
+
+  describe("refined", () => {
+    it("should return a TypeMatcher for a refined type", () => {
+      const match: TypeMatcher<number & Refined<"Positive">> = refined(isNumber)(_ => _ > 0, "Positive")
+      expect(match(1)).equals(true, "1 is positive")
+      // You may be wondering is 0 positive or not?! Answer: it depends ... it doesn't matter for this test
+      expect(match(0)).equals(false, "0 is not positive (?)")
+      expect(match(-1)).equals(false, "-1 is not positive")
+    })
+
+    it("works with isBoth", () => {
+      const isGreaterThan10: TypeMatcher<number & Refined<"GreaterThan10">> = refined(isNumber)(_ => _ > 10, "GreaterThan10")
+      const isLowerThan20: TypeMatcher<number & Refined<"LowerThan20">> = refined(isNumber)(_ => _ < 20, "LowerThan20")
+
+      // some type tests, by compiler
+      const inRange: TypeMatcher<number & Refined<"GreaterThan10"> & Refined<"LowerThan20">> = isBoth(isGreaterThan10, isLowerThan20)
+      const a: TypeMatcher<number> = isGreaterThan10
+      const b: TypeMatcher<number & Refined<"GreaterThan10">> = inRange
+      const c: TypeMatcher<number & Refined<"LowerThan20">> = inRange
+
+      expect(isGreaterThan10(11)).equals(true)
+      expect(isGreaterThan10(10)).equals(false)
+      expect(isLowerThan20(19)).equals(true)
+      expect(isLowerThan20(20)).equals(false)
+
+      expect(inRange(10)).equals(false)
+      expect(inRange(11)).equals(true)
+      expect(inRange(19)).equals(true)
+      expect(inRange(20)).equals(false)
+    })
+
+    it("works with isEither", () => {
+      const isGreaterThan20: TypeMatcher<number & Refined<"GreaterThan20">> = refined(isNumber)(_ => _ > 20, "GreaterThan20")
+      const isLowerThan10: TypeMatcher<number & Refined<"LowerThan10">> = refined(isNumber)(_ => _ < 10, "LowerThan10")
+
+      // some type tests, by compiler
+      const inRange: TypeMatcher<(number & Refined<"GreaterThan20">) | (number & Refined<"LowerThan10">)> = isEither(isGreaterThan20, isLowerThan10)
+      const inRange2: TypeMatcher<number & Refined<"GreaterThan20" | "LowerThan10">> = isEither(isGreaterThan20, isLowerThan10)
+      const inRange3: TypeMatcher<number & (Refined<"GreaterThan20"> | Refined<"LowerThan10">)> = isEither(isGreaterThan20, isLowerThan10)
+
+      const a: TypeMatcher<number> = isGreaterThan20
+
+      expect(isGreaterThan20(21)).equals(true)
+      expect(isGreaterThan20(20)).equals(false)
+      expect(isLowerThan10(9)).equals(true)
+      expect(isLowerThan10(10)).equals(false)
+
+      expect(inRange(10)).equals(false)
+      expect(inRange(20)).equals(false)
+      expect(inRange(9)).equals(true)
+      expect(inRange(21)).equals(true)
     })
   })
 
