@@ -306,7 +306,7 @@ export function isNullable<T>(matcher: TypeMatcher<T>): TypeMatcher<T | null> {
 
 /**
  * Build refined type matcher, ex:
- * const isPositive: TypeMatcher<number & Tagged<"Positive">> = refined(isFiniteNumber)(_ => _ > 0, "Positive")
+ * const isPositive: TypeMatcher<number & Refined<"Positive">> = refined(isFiniteNumber)(_ => _ > 0, "Positive")
  * isPositive(1) === true
  * isPositive(0) === false
  * isPositive(-1) === false
