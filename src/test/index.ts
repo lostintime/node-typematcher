@@ -16,7 +16,7 @@ import {
   isString, isUndefined, isValue,
   isTuple1, isTuple2, isTuple3, isTuple4, isTuple5, isTuple6, isTuple7, isTuple8, isTuple9,
   isTuple10, isBoth, isEither, isOptional, isNullable, refined,
-  match, caseWhen, caseAny, caseDefault, caseThrow, caseId, failWith, isInstanceOf, isObjectMapOf
+  match, caseWhen, caseDefault, caseId, failWith, isInstanceOf, isObjectMapOf, Case
 } from "../lib"
 
 describe("Matchers", () => {
@@ -755,89 +755,42 @@ describe("Matchers", () => {
 
 describe("Match DSL", function () {
   describe("match", () => {
-    it("will return first matched case value", () => {
-      expect(match(10)(caseId(isValue(10))))
-        .equals(10, "caseId returns input value if matched")
-
-      expect(match(10)(caseWhen(isString)(s => `got string ${s}`), caseWhen(isNumber)(n => `got number ${n}`)))
-        .equals("got number 10", "returned first matched")
-
-      expect(match("hello")(caseWhen(isNumber)(n => ""), caseAny(v => `got value "${v}"`)))
-        .equals('got value "hello"', "caseAny matches any value")
-
-      expect(match(333)(caseDefault(() => 20), caseId(isNumber)))
-        .equals(20, "caseDefault returns first")
-    })
-
-    it("will throw if no case matched", () => {
-      expect(() => match(10)()).throws()
-      expect(() => match("hello")(caseWhen(isNumber)(n => n * 2))).throws()
-    })
-  })
-
-  describe("matchWith", () => {
-    it("will return first matched case value", () => {
-      expect(match(15)(caseId(isValue(15))))
-        .equals(15, "caseId returns input value if matched")
-    })
-
-    it("will throw if no case matched", () => {
-      expect(() => match(true)()).throws()
-      expect(() => match("aloha")(caseWhen(isNumber)(n => n * 2))).throws()
+    it("calls Case.map function over input value and returns result", () => {
+      expect(match(10,
+        caseWhen(isAny, ten => {
+          expect(ten).equals(10)
+          return "executed"
+        })
+      )).equals("executed")
     })
   })
 
   describe("caseWhen", () => {
-    it("will return CaseMatch on match", () => {
-      const m = caseWhen(isNumber)(n => n * 2)(10)
-      expect(isObject(m)).equals(true, "CaseMatch is an object")
-      expect(hasFields({ match: isValue(20) })(m)).equals(true, 'CaseMatch has "match" field with valid 20')
+    it("builds new match case", () => {
+      const isOne: TypeMatcher<"one"> = (val: any): val is "one" => val === "one"
+      const c: Case<"one", 1> = caseWhen(isOne, (one): 1 => 1)
+      expect(c.map("one")).equals(1)
     })
 
-    it("will return CaseMiss on match fail", () => {
-      const m = caseWhen(isString)(s => `${s}:${s}`)(20)
-      expect(isValue(false)(m)).equals(true, "CaseMiss is a boolean false")
+    it("will throw on error when input doesn't match (may be caused by buggy type matchers", () => {
+      const isTen: TypeMatcher<10> = (val: any): val is 10 => false
+      expect(() => caseWhen(isTen, _ => _ * 2).map(10)).throws("No match")
     })
   })
 
   describe("caseId", () => {
     it("will pass input value on match", () => {
-      expect(match(10)(caseId(isNumber))).equals(10)
-      expect(match("test")(caseId(isValue("test")))).equals("test")
-    })
-
-    it("will throw if not matched", () => {
-      expect(() => match(10)(caseId(isString))).throws()
-    })
-  })
-
-  describe("caseAny", () => {
-    it("will return CaseMatch on an value", () => {
-      expect(hasFields({ match: isString })(caseAny(v => `${v}`)(10))).equals(true)
-      expect(hasFields({ match: isString })(caseAny(v => `${v}`)(""))).equals(true)
-      expect(hasFields({ match: isString })(caseAny(v => `${v}`)(true))).equals(true)
+      expect(caseId(isNumber).map(10)).equals(10)
+      expect(caseId(isValue<"test">("test")).map("test")).equals("test")
     })
   })
 
   describe("caseDefault", () => {
-    it("will return handler result", () => {
-      expect(hasFields({ match: isValue("a") })(caseDefault(() => "a")(null))).equals(true)
-    })
-  })
-
-  describe("caseThrow", () => {
-    it("will not throw when just called", () => {
-      expect(() => caseThrow(new Error("This should not be thrown"))).to.not.throw()
-    })
-
-    it("will not throw if matched before", () => {
-      expect(() => match(10)(caseId(isNumber), caseThrow(new Error("Fail if not number"))))
-        .to.not.throw()
-    })
-
-    it("will throw given error", () => {
-      expect(() => match(10)(caseThrow(new Error("No matches before this"))))
-        .to.throw("No matches before this")
+    it("returns function result for any given input", () => {
+      expect(caseDefault(() => 10).map("hello1")).equals(10)
+      expect(caseDefault(() => "hola").map("hello2")).equals("hola")
+      expect(caseDefault(() => true).map("hello3")).equals(true)
+      expect(caseDefault(() => false).map("hello4")).equals(false)
     })
   })
 })

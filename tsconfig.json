@@ -11,6 +11,7 @@
     "noFallthroughCasesInSwitch": true,
     "noImplicitUseStrict": false,
     "strictFunctionTypes": true,
+    "strict": true,
     "sourceMap": true,
     "allowJs": false,
     "forceConsistentCasingInFileNames": true,

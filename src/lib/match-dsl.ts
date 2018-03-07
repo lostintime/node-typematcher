@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 by TypeMatcher developers
+ * Copyright 2018 by TypeMatcher developers
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
  *
@@ -8,97 +8,84 @@
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { TypeMatcher, Throwable, isAny } from "./matchers"
+import { TypeMatcher, isAny } from "./matchers"
 
 /**
- * Success case match result
+ * Define a match case handler
  */
-export type CaseMatch<T> = { match: T }
+export interface Case<A, R> {
+  map: (val: A) => R
 
-/**
- * Failure case match result
- */
-export type CaseMiss = false
+  caseWhen: <B>(matcher: TypeMatcher<B>, fn: (val: B) => R) => Case<A | B, R>
 
-/**
- * Success or Failure
- */
-export type CaseResult<T> = CaseMatch<T> | CaseMiss
+  caseId: <B extends R>(matcher: TypeMatcher<B>) => Case<A, R>
 
-/**
- * Defines a case to be used with match
- */
-export type MatchCase<T> = (val: any) => CaseResult<T>
+  caseDefault: (fn: (v: any) => R) => Case<any, R>
+}
 
-/**
- * matchWith is same as match() only with inverse arguments order,
- * this can be used to pre-build matchers and save some CPU cycles
- */
-export function matchWith<R>(...cases: MatchCase<R>[]): (val: any) => R {
-  return function value(val: any): R {
-    for (const m of cases) {
-      const r = m(val)
-      if (r !== false) {
-        return r.match
-      }
+class SwitchCase<A, B, R> implements Case<A | B, R> {
+  constructor(private matchA: TypeMatcher<A>,
+              private caseA: (val: A) => R,
+              private caseB: (val: B) => R) {
+  }
+
+  map(val: A | B): R {
+    if (this.matchA(val)) {
+      return this.caseA(val)
     }
 
-    throw new Error("No match")
+    return this.caseB(val)
+  }
+
+  caseWhen<C>(matcher: TypeMatcher<C>, fn: (val: C) => R): Case<A | B | C, R> {
+    return new SwitchCase<C, A | B, R>(matcher, fn, this.map)
+  }
+
+  caseId<C extends R>(matcher: TypeMatcher<C>): Case<A | B, R> {
+    return this.caseWhen(matcher, _ => _)
+  }
+
+  caseDefault(fn: (val: any) => R): Case<any, R> {
+    return this.caseWhen(isAny, fn)
   }
 }
 
 /**
- * Match value against all given matchers, return when on first match,
- * Throws error if none matched
- * This method should be used with caseWhen, caseAny, caseDefault methods
+ * Pattern Matching syntax sugar
+ *
+ * Equivalent to Case<C, R>.map(val)
+ * @param val input value to match
+ * @param cases match cases
  */
-export function match(val: any): <R>(...cases: MatchCase<R>[]) => R {
-  return function cases<R>(...cases: MatchCase<R>[]): R {
-    return matchWith(...cases)(val)
-  }
+export function match<I extends C, C, R>(val: I, cases: Case<C, R>): R {
+  return cases.map(val)
 }
 
 /**
- * Maps over value if successfully matched by matcher
+ * Case handler for type A
+ *
+ * @param matcher matcher used to verify input value
+ * @param fn handler function
  */
-export function caseWhen<T>(matcher: TypeMatcher<T>): <U>(h: (v: T) => U) => MatchCase<U> {
-  return function map<U>(f: (v: T) => U): MatchCase<U> {
-    return function value(val: any): CaseResult<U> {
-      if (matcher(val)) {
-        return { match: f(val) }
-      }
-
-      return false
-    }
-  }
+export function caseWhen<A, R>(matcher: TypeMatcher<A>, fn: (val: A) => R): Case<A, R> {
+    return new SwitchCase<A, never, R>(matcher, fn, () => { throw new Error("No match") })
 }
 
 /**
- * Case for any value match (use for default handling)
+ * Identity case, passes input value
+ *
+ * Equivalent to caseWhen(matcher, _ => _)
+ * @param matcher input value type matcher
  */
-export function caseAny<U>(h: (val: any) => U): MatchCase<U> {
-  return caseWhen(isAny)(h)
+export function caseId<A>(matcher: TypeMatcher<A>): Case<A, A> {
+  return caseWhen(matcher, _ => _)
 }
 
 /**
- * Just an alias for caseAny
+ * Create new default case handler - matches any type
+ *
+ * @param fn handler function
  */
-export function caseDefault<U>(h: () => U): MatchCase<U> {
-  return caseAny(() => h())
-}
-
-/**
- * Identity case
- */
-export function caseId<T>(matcher: TypeMatcher<T>): MatchCase<T> {
-  return caseWhen(matcher)(v => v)
-}
-
-/**
- * Just a wrapper to throw given error
- */
-export function caseThrow<U>(err: Throwable): MatchCase<U> {
-  return (val: any) => {
-    throw err
-  }
+export function caseDefault<R>(fn: (val: any) => R): Case<any, R> {
+  return caseWhen(isAny, fn)
 }
