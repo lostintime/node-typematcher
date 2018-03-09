@@ -24,7 +24,7 @@ TypeMatcher library contains 2 main components:
   * type matchers - functions to check value matches a type
   * matching dsl - constructs to match required type for given input
 
-`TypeMatcher` is only an alias for a function returning `true` if its argument type matches:
+`TypeMatcher` is an alias for a function returning `true` if its argument type matches:
 
 ```typescript
 type TypeMatcher<T> = (val: any) => val is T
@@ -33,13 +33,15 @@ type TypeMatcher<T> = (val: any) => val is T
 Some type matchers: `isString`, `isNumber`, `isArrayOf`, `isTuple1`.
 
 Matching DSL consists of 2 main functions: `match`, `caseWhen` and few aliases to make
-code more readable: `caseAny`, `caseDefault`, `caseId` and `caseThrow`. 
+code more readable: `caseDefault` and `caseId`.
 
 Example:
 
 ```typescript
-import {match, caseWhen, caseId, caseDefault, isValue, hasFields, isString, isOptional, isNumber} from 'typematcher';
-
+import {
+  match, caseWhen, caseId, caseDefault, isValue, hasFields, isString, isOptional, isNumber,
+  isEither, isNull
+} from 'typematcher'
 
 enum UserRole {
   Member = 0,
@@ -50,27 +52,35 @@ enum UserRole {
 type User = {
   name: string,
   role: UserRole,
-  age?: number,
-};
+  age?: number
+}
 
+/**
+ * UserRole type matcher
+ */
 function isUserRole(val: any): val is UserRole {
   switch (val) {
     case UserRole.Member:
     case UserRole.Moderator:
     case UserRole.Admin:
-      return true;
+      return true
     default:
-      return false;
+      return false
   }
 }
 
+const isUser: TypeMatcher<User> = hasFields({
+  name: isString,
+  role: isUserRole,
+  age: isOptional(isNumber)
+})
 
-const input = {name: "John", role: 20};
+const user: any = { name: "John", role: 20 }
 
-const u: User = match(input)(
-  caseId(hasFields({name: isString, role: isUserRole, age: isOptional(isNumber)}))
-);
-
+const u: User | null = match(user,
+  caseId(isEither(isUser, isNull)).
+  caseDefault(() => null)
+)
 ```
 Sometimes is simpler to use `switch/case` but unfortunately not as an expression.
 
@@ -85,23 +95,33 @@ You may set more specific type, but check will bring you more general one and co
 This is caused by TypeScript [Function Parameter Bivariance](https://www.typescriptlang.org/docs/handbook/type-compatibility.html).
 
 ```typescript
-match(8)(caseWhen(isNumber)((n: 10) => "n is 10"));
+match(8,
+  caseWhen(isNumber, (n: 10) => "n is 10").
+  caseDefault(_ => "some defaults")
+)
 ```
 
 vs
 
 ```typescript
-match(8)(caseWhen(isNumber)(n => {
-  const x: 10 = n; // this will not compile: Type 'number' is not assignable to type '10'
-  return "n is 10"
-}));
+match(8,
+  caseWhen(isNumber, n => {
+    const x: 10 = n // this will not compile: Type 'number' is not assignable to type '10'
+    return "n is 10"
+  }).
+  caseDefault(_ => "some default")
+)
 ```
 
 __UPD__: Typescript v2.6 brings `--strictFunctionTypes` compiler option and if it's on, for this code:
  
 ```typescript
-match(8)(caseWhen(isNumber)((n: 10) => "n is 10"));
+match(8,
+  caseWhen(isNumber, (n: 10) => "n is 10").
+  caseDefault(_ => "some defaults")
+)
 ```
+
 you will now get this error:
 
 ```
@@ -110,11 +130,18 @@ error TS2345: Argument of type '(n: 10) => string' is not assignable to paramete
     Type 'number' is not assignable to type '10'.
 ```
 
+### Handle `caseDefault` always when input value type is `any`
 
-### Use `caseDefault` at the end
+<!-- `match` will execute all cases as provided, so first matching will return, use `caseDefault`, `caseAny` last. -->
 
-`match` will execute all cases as provided, so first matching will return, 
-use `caseDefault`, `caseAny` last.
+Exhaustivity checking is based on types defined by cases and `match` input value type, but `any`
+ input type will allways match cases type and compiler will not fail, use `caseDefault` for such values.
+
+When input type is known - there is no need for default:
+
+```typescript
+// TBD
+```
 
 
 ## Contribute
