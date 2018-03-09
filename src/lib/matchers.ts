@@ -122,9 +122,9 @@ export function isArrayOf<T>(matcher: TypeMatcher<T>): TypeMatcher<Array<T>> {
  *
  * WARNING: always set type hint explicitly, otherwise - exhaustive checks will not work
  */
-export function isValue<T>(v: T): TypeMatcher<T> {
+export function isLiteral<T extends string | number | boolean>(expected: T): TypeMatcher<T> {
   return function value(val: any): val is T {
-    return v === val
+    return expected === val
   }
 }
 

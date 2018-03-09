@@ -10,8 +10,7 @@
 
 import { expect } from "chai"
 import {
-  TypeMatcher, Refined,
-  hasFields, isValue,
+  TypeMatcher, Refined, hasFields, isLiteral,
   isAny, isArrayOf, isBoolean, isFiniteNumber, isMissing, isNever, isNull, isNumber, isObject,
   isString, isUndefined, isTuple1, isTuple2, isTuple3, isTuple4, isTuple5, isTuple6, isTuple7, isTuple8, isTuple9,
   isTuple10, isBoth, isEither, isOptional, isNullable, refined,
@@ -217,29 +216,23 @@ describe("Matchers", () => {
     })
   })
 
-  describe("isValue", () => {
+  describe("isLiteral", () => {
     it("should exactly match values", () => {
-      expect(isValue(10)(10)).equals(true)
-      expect(isValue("one")("one")).equals(true)
-      expect(isValue(true)(true)).equals(true)
-      expect(isValue(Infinity)(Infinity)).equals(true)
-      const x = new String("hello")
-      expect(isValue(x)(x)).equals(true)
+      expect(isLiteral(10)(10)).equals(true)
+      expect(isLiteral("one")("one")).equals(true)
+      expect(isLiteral(true)(true)).equals(true)
+      expect(isLiteral(Infinity)(Infinity)).equals(true)
     })
     it("should not match values with different types", () => {
-      expect(isValue("10")(10)).equals(false)
-      expect(isValue(0)(false)).equals(false)
-      expect(isValue(1)(true)).equals(false)
-      expect(isValue(NaN)(NaN)).equals(false)
+      expect(isLiteral("10")(10)).equals(false)
+      expect(isLiteral(0)(false)).equals(false)
+      expect(isLiteral(1)(true)).equals(false)
+      expect(isLiteral(NaN)(NaN)).equals(false)
     })
     it("should not match different values with same type", () => {
-      expect(isValue("10")("20")).equals(false)
-      expect(isValue(1)(1.1)).equals(false)
-      expect(isValue(true)(false)).equals(false)
-    })
-    it("should not match different object instances", () => {
-      expect(isValue(new String("hello"))(new String("hello"))).equals(false)
-      expect(isValue(new Number(10))(new Number(10))).equals(false)
+      expect(isLiteral("10")("20")).equals(false)
+      expect(isLiteral(1)(1.1)).equals(false)
+      expect(isLiteral(true)(false)).equals(false)
     })
   })
 
