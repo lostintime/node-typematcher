@@ -756,6 +756,14 @@ describe("Match DSL", function () {
       const isTen: TypeMatcher<10> = (val: any): val is 10 => false
       expect(() => caseWhen(isTen, _ => _ * 2).map(10)).throws("No match")
     })
+
+    it("should exhaustive check input value type", () => {
+      // Unfortunately there is no way (know to me) to check compilation failures :(
+      const x: number = match("1" as string | number,
+        caseWhen(isString, _ => 10).
+        caseWhen(isNumber, _ => _)
+      )
+    })
   })
 
   describe("caseDefault", () => {
