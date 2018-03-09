@@ -13,10 +13,9 @@ import {
   TypeMatcher, Refined,
   hasFields,
   isAny, isArrayOf, isBoolean, isFiniteNumber, isMissing, isNever, isNull, isNumber, isObject,
-  isString, isUndefined, isValue,
-  isTuple1, isTuple2, isTuple3, isTuple4, isTuple5, isTuple6, isTuple7, isTuple8, isTuple9,
+  isString, isUndefined, isTuple1, isTuple2, isTuple3, isTuple4, isTuple5, isTuple6, isTuple7, isTuple8, isTuple9,
   isTuple10, isBoth, isEither, isOptional, isNullable, refined,
-  match, caseWhen, caseAny, caseDefault, caseThrow, caseId, failWith, isInstanceOf, isObjectMapOf
+  match, caseWhen, caseDefault, failWith, isInstanceOf, isObjectMapOf, MatchCase
 } from "../lib"
 
 describe("Matchers", () => {
@@ -218,35 +217,6 @@ describe("Matchers", () => {
     })
   })
 
-  describe("isValue", () => {
-    it("should exactly match values", () => {
-      expect(isValue(10)(10)).equals(true)
-      expect(isValue("one")("one")).equals(true)
-      expect(isValue(true)(true)).equals(true)
-      expect(isValue(Infinity)(Infinity)).equals(true)
-      const x = new String("hello")
-      expect(isValue(x)(x)).equals(true)
-    })
-
-    it("should not match values with different types", () => {
-      expect(isValue("10")(10)).equals(false)
-      expect(isValue(0)(false)).equals(false)
-      expect(isValue(1)(true)).equals(false)
-      expect(isValue(NaN)(NaN)).equals(false)
-    })
-
-    it("should not match different values with same type", () => {
-      expect(isValue("10")("20")).equals(false)
-      expect(isValue(1)(1.1)).equals(false)
-      expect(isValue(true)(false)).equals(false)
-    })
-
-    it("should not match different object instances", () => {
-      expect(isValue(new String("hello"))(new String("hello"))).equals(false)
-      expect(isValue(new Number(10))(new Number(10))).equals(false)
-    })
-  })
-
   describe("isNull", () => {
     it("should match for null", () => {
       expect(isNull(null)).equals(true)
@@ -312,15 +282,19 @@ describe("Matchers", () => {
 
     it("should match object with matching fields", () => {
       expect(hasFields({ key: isNumber })({ key: 10 })).equals(true)
-      expect(hasFields({ x: isValue(10) })({ x: 10 })).equals(true)
+      expect(hasFields({ x: refined(isNumber)(_ => _ === 10, "IsTen") })({ x: 10 })).equals(true)
       expect(hasFields({ name: isString })({ x: 10, y: 20, name: "testing" })).equals(true)
-      expect(hasFields({ a: isValue("one"), b: isValue(20), c: isNull })({
+      expect(hasFields({
+        a: refined(isString)(_ => _ === "one", "IsOne"),
+        b: refined(isNumber)(_ => _ === 20, "Is20"),
+        c: isNull
+      })({
         a: "one",
         b: 20,
         c: null
       })).equals(true)
       expect(hasFields({ length: isNumber })([])).equals(true)
-      expect(hasFields({ length: isValue(2) })([1, 2])).equals(true)
+      expect(hasFields({ length: refined(isNumber)(_ => _ === 2, "AnyVal") })([1, 2])).equals(true)
     })
 
     it("should match missing fields for undefined matcher", () => {
@@ -335,7 +309,7 @@ describe("Matchers", () => {
 
     it("should not match objects with wrong field types", () => {
       expect(hasFields({ key: isNumber })({ key: "10" })).equals(false)
-      expect(hasFields({ key: isValue("20") })({ key: "10" })).equals(false)
+      expect(hasFields({ key: refined(isString)(_ => _ === "20", "20") })({ key: "10" })).equals(false)
       expect(hasFields({ key: isNumber, value: isNumber })({
         key: 10,
         value: "wrong number"
@@ -597,7 +571,10 @@ describe("Matchers", () => {
   })
 
   describe("isTuple10", () => {
-    const isT10 = isTuple10(isNumber, isString, isBoolean, isNumber, isNumber, isString, isNull, isBoolean, isString, isValue(3))
+    const isT10 = isTuple10(
+      isNumber, isString, isBoolean, isNumber, isNumber, isString, isNull,
+      isBoolean, isString, refined(isNumber)(_ => _ === 3, "3")
+    )
 
     it("should match on valid tuples", () => {
       expect(isT10([10, "ten", false, 2, 3, "s", null, true, "9", 3])).equals(true)
@@ -622,29 +599,32 @@ describe("Matchers", () => {
 
   describe("isBoth", () => {
     it("should match when both matches", () => {
-      expect(isBoth(isNumber, isValue(10))(10)).equals(true)
-      expect(isBoth(hasFields({ key: isString }), hasFields({ value: isValue(10) }))({
+      expect(isBoth(isNumber, refined(isNumber)(_ => _ === 10, "10"))(10)).equals(true)
+      expect(isBoth(
+        hasFields({ key: isString }),
+        hasFields({ value: refined(isNumber)(_ => _ === 10, "10") })
+      )({
         key: "key",
         value: 10
       })).equals(true)
     })
 
     it("should not match when one does't match", () => {
-      expect(isBoth(isNumber, isValue(20))(30)).equals(false)
+      expect(isBoth(isNumber, refined(isNumber)(_ => _ === 20, "20"))(30)).equals(false)
       expect(isBoth(isString, isNumber)(10)).equals(false)
     })
   })
 
   describe("isEither", () => {
     it("should match when one matches", () => {
-      expect(isEither(isNumber, isValue(20))(10)).equals(true)
+      expect(isEither(isNumber, refined(isNumber)(_ => _ === 20, "20"))(10)).equals(true)
       expect(isEither(isNumber, isString)(10)).equals(true)
       expect(isEither(isNumber, isString)("str")).equals(true)
     })
 
     it("should not match when none match", () => {
-      expect(isBoth(isNumber, isValue(20))("str")).equals(false)
-      expect(isBoth(isString, isValue(30))(10)).equals(false)
+      expect(isBoth(isNumber, refined(isNumber)(_ => _ === 20, "20"))("str")).equals(false)
+      expect(isBoth(isString, refined(isNumber)(_ => _ === 30, "30"))(10)).equals(false)
     })
   })
 
@@ -656,15 +636,15 @@ describe("Matchers", () => {
     })
 
     it("should not match for other types", () => {
-      expect(isOptional(isValue(-1))(NaN)).equals(false)
-      expect(isOptional(isValue(-1))(Infinity)).equals(false)
-      expect(isOptional(isValue(-1))(1)).equals(false)
-      expect(isOptional(isValue(-1))(0)).equals(false)
-      expect(isOptional(isValue(-1))(1.3)).equals(false)
-      expect(isOptional(isValue(-1))("true")).equals(false)
-      expect(isOptional(isValue(-1))(false)).equals(false)
-      expect(isOptional(isValue(-1))({})).equals(false)
-      expect(isOptional(isValue(-1))(null)).equals(false)
+      expect(isOptional(refined(isNumber)(_ => _ === -1, "-1"))(NaN)).equals(false)
+      expect(isOptional(refined(isNumber)(_ => _ === -1, "-1"))(Infinity)).equals(false)
+      expect(isOptional(refined(isNumber)(_ => _ === -1, "-1"))(1)).equals(false)
+      expect(isOptional(refined(isNumber)(_ => _ === -1, "-1"))(0)).equals(false)
+      expect(isOptional(refined(isNumber)(_ => _ === -1, "-1"))(1.3)).equals(false)
+      expect(isOptional(refined(isNumber)(_ => _ === -1, "-1"))("true")).equals(false)
+      expect(isOptional(refined(isNumber)(_ => _ === -1, "-1"))(false)).equals(false)
+      expect(isOptional(refined(isNumber)(_ => _ === -1, "-1"))({})).equals(false)
+      expect(isOptional(refined(isNumber)(_ => _ === -1, "-1"))(null)).equals(false)
     })
   })
 
@@ -676,15 +656,15 @@ describe("Matchers", () => {
     })
 
     it("should not match for other types", () => {
-      expect(isNullable(isValue(-1))(NaN)).equals(false)
-      expect(isNullable(isValue(-1))(Infinity)).equals(false)
-      expect(isNullable(isValue(-1))(1)).equals(false)
-      expect(isNullable(isValue(-1))(0)).equals(false)
-      expect(isNullable(isValue(-1))(1.3)).equals(false)
-      expect(isNullable(isValue(-1))("true")).equals(false)
-      expect(isNullable(isValue(-1))(false)).equals(false)
-      expect(isNullable(isValue(-1))({})).equals(false)
-      expect(isNullable(isValue(-1))(undefined)).equals(false)
+      expect(isNullable(refined(isNumber)(_ => _ === -1, "-1"))(NaN)).equals(false)
+      expect(isNullable(refined(isNumber)(_ => _ === -1, "-1"))(Infinity)).equals(false)
+      expect(isNullable(refined(isNumber)(_ => _ === -1, "-1"))(1)).equals(false)
+      expect(isNullable(refined(isNumber)(_ => _ === -1, "-1"))(0)).equals(false)
+      expect(isNullable(refined(isNumber)(_ => _ === -1, "-1"))(1.3)).equals(false)
+      expect(isNullable(refined(isNumber)(_ => _ === -1, "-1"))("true")).equals(false)
+      expect(isNullable(refined(isNumber)(_ => _ === -1, "-1"))(false)).equals(false)
+      expect(isNullable(refined(isNumber)(_ => _ === -1, "-1"))({})).equals(false)
+      expect(isNullable(refined(isNumber)(_ => _ === -1, "-1"))(undefined)).equals(false)
     })
   })
 
@@ -755,89 +735,43 @@ describe("Matchers", () => {
 
 describe("Match DSL", function () {
   describe("match", () => {
-    it("will return first matched case value", () => {
-      expect(match(10)(caseId(isValue(10))))
-        .equals(10, "caseId returns input value if matched")
-
-      expect(match(10)(caseWhen(isString)(s => `got string ${s}`), caseWhen(isNumber)(n => `got number ${n}`)))
-        .equals("got number 10", "returned first matched")
-
-      expect(match("hello")(caseWhen(isNumber)(n => ""), caseAny(v => `got value "${v}"`)))
-        .equals('got value "hello"', "caseAny matches any value")
-
-      expect(match(333)(caseDefault(() => 20), caseId(isNumber)))
-        .equals(20, "caseDefault returns first")
-    })
-
-    it("will throw if no case matched", () => {
-      expect(() => match(10)()).throws()
-      expect(() => match("hello")(caseWhen(isNumber)(n => n * 2))).throws()
-    })
-  })
-
-  describe("matchWith", () => {
-    it("will return first matched case value", () => {
-      expect(match(15)(caseId(isValue(15))))
-        .equals(15, "caseId returns input value if matched")
-    })
-
-    it("will throw if no case matched", () => {
-      expect(() => match(true)()).throws()
-      expect(() => match("aloha")(caseWhen(isNumber)(n => n * 2))).throws()
+    it("calls Case.map function over input value and returns result", () => {
+      expect(match(10,
+        caseWhen(isAny, ten => {
+          expect(ten).equals(10)
+          return "executed"
+        })
+      )).equals("executed")
     })
   })
 
   describe("caseWhen", () => {
-    it("will return CaseMatch on match", () => {
-      const m = caseWhen(isNumber)(n => n * 2)(10)
-      expect(isObject(m)).equals(true, "CaseMatch is an object")
-      expect(hasFields({ match: isValue(20) })(m)).equals(true, 'CaseMatch has "match" field with valid 20')
+    it("builds new match case", () => {
+      const isOne: TypeMatcher<"one"> = (val: any): val is "one" => val === "one"
+      const c: MatchCase<"one", 1> = caseWhen(isOne, (one): 1 => 1)
+      expect(c.map("one")).equals(1)
     })
 
-    it("will return CaseMiss on match fail", () => {
-      const m = caseWhen(isString)(s => `${s}:${s}`)(20)
-      expect(isValue(false)(m)).equals(true, "CaseMiss is a boolean false")
-    })
-  })
-
-  describe("caseId", () => {
-    it("will pass input value on match", () => {
-      expect(match(10)(caseId(isNumber))).equals(10)
-      expect(match("test")(caseId(isValue("test")))).equals("test")
+    it("will throw on error when input doesn't match (may be caused by buggy type matchers", () => {
+      const isTen: TypeMatcher<10> = (val: any): val is 10 => false
+      expect(() => caseWhen(isTen, _ => _ * 2).map(10)).throws("No match")
     })
 
-    it("will throw if not matched", () => {
-      expect(() => match(10)(caseId(isString))).throws()
-    })
-  })
-
-  describe("caseAny", () => {
-    it("will return CaseMatch on an value", () => {
-      expect(hasFields({ match: isString })(caseAny(v => `${v}`)(10))).equals(true)
-      expect(hasFields({ match: isString })(caseAny(v => `${v}`)(""))).equals(true)
-      expect(hasFields({ match: isString })(caseAny(v => `${v}`)(true))).equals(true)
+    it("should exhaustive check input value type", () => {
+      // Unfortunately there is no way (know to me) to check compilation failures :(
+      const x: number = match("1" as string | number,
+        caseWhen(isString, _ => 10).
+        caseWhen(isNumber, _ => _)
+      )
     })
   })
 
   describe("caseDefault", () => {
-    it("will return handler result", () => {
-      expect(hasFields({ match: isValue("a") })(caseDefault(() => "a")(null))).equals(true)
-    })
-  })
-
-  describe("caseThrow", () => {
-    it("will not throw when just called", () => {
-      expect(() => caseThrow(new Error("This should not be thrown"))).to.not.throw()
-    })
-
-    it("will not throw if matched before", () => {
-      expect(() => match(10)(caseId(isNumber), caseThrow(new Error("Fail if not number"))))
-        .to.not.throw()
-    })
-
-    it("will throw given error", () => {
-      expect(() => match(10)(caseThrow(new Error("No matches before this"))))
-        .to.throw("No matches before this")
+    it("returns function result for any given input", () => {
+      expect(caseDefault(() => 10).map("hello1")).equals(10)
+      expect(caseDefault(() => "hola").map("hello2")).equals("hola")
+      expect(caseDefault(() => true).map("hello3")).equals(true)
+      expect(caseDefault(() => false).map("hello4")).equals(false)
     })
   })
 })
