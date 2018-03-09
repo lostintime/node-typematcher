@@ -9,7 +9,7 @@ as types and _executed_ at compilation time. But all of this is only true while 
 are also in safe environment, from Input to Output, so you functions relying on 
 _type safe_ inputs will not crack.
 
-This library provides constructions to _cover your Input_ with type checks.
+This library provides constructions to _cover your input_ with type checks and pattern-match on them.
 
 ## Installation
 
@@ -22,9 +22,9 @@ npm install --save typematcher
 TypeMatcher library contains 2 main components:
  
   * type matchers - functions to check value matches a type
-  * matching dsl - constructs to match required type for given input
+  * matching dsl - constructs to map a type A to B using type matchers to refine
 
-`TypeMatcher` is an alias for a function returning `true` if its argument type matches:
+`TypeMatcher` is a type alias for a function returning `true` if its argument type matches:
 
 ```typescript
 type TypeMatcher<T> = (val: any) => val is T
@@ -32,10 +32,33 @@ type TypeMatcher<T> = (val: any) => val is T
 
 Some type matchers: `isString`, `isNumber`, `isArrayOf`, `isTuple1`.
 
-Matching DSL consists of 2 main functions: `match`, `caseWhen` and few aliases to make
-code more readable: `caseDefault` and `caseId`.
+Matching DSL consists of few functions: `match`, `caseWhen` and `caseDefault`:
 
-Example:
+Exhaustive match:
+
+```typescript
+import { match, caseWhen, isString } from "typematcher"
+
+const x: number = match("1" as string | number,
+  caseWhen(isNumber, _ => _).
+  caseWhen(isString, _ => parseInt(_, 10))
+)
+```
+
+Default case handler:
+
+```typescript
+import { match, caseWhen, isBoolean } from "typematcher"
+
+const x: 1 | 0 = match("2" as string | number,
+  caseWhen(isBoolean, _ => _ ? 1 : 0).
+  caseWhen(isNumber, _ => _ > 0 ? 1 : 0).
+  // string type not covered, default case required
+  caseDefault(() => 0)
+)
+```
+
+Composing type matchers:
 
 ```typescript
 import {
@@ -130,17 +153,37 @@ error TS2345: Argument of type '(n: 10) => string' is not assignable to paramete
     Type 'number' is not assignable to type '10'.
 ```
 
-### Handle `caseDefault` always when input value type is `any`
+### Add `caseDefault` for `any` input values
 
-<!-- `match` will execute all cases as provided, so first matching will return, use `caseDefault`, `caseAny` last. -->
-
-Exhaustivity checking is based on types defined by cases and `match` input value type, but `any`
- input type will allways match cases type and compiler will not fail, use `caseDefault` for such values.
-
-When input type is known - there is no need for default:
+Because `any` type is _bivariant_ compiler cannot guess either will match cases fully cover input
+ values or not, so when have to handle value of type `any` - always add default case handler.
+ 
+ When input type is known - there is no need for default:
 
 ```typescript
-// TBD
+type OneOrTwo = "one" | "two"
+const isOne = (val: any): val is "one" => val === "one"
+const isTwo = (val: any): val is "two" => val === "two"
+const isOneOrTwo = (val: any): val is OneOrTwo => isOne(val) || isTwo(val)
+
+// Removing one of match cases handlers will cause a compilation error (exhaustive check)
+const r1: number = match("one" as OneOrTwo,
+  caseWhen(isOne, () => 1).
+  caseWhen(isTwo, () => 2)
+)
+
+// This will not fail on compilation, but definitely fail at runtime :(
+const r2: number = match("three" as any,
+  caseWhen(isOne, () => 1).
+  caseWhen(isTwo, () => 2)
+)
+
+// Handle default
+const r3: number = match("three" as any,
+  caseWhen(isOne, () => 1).
+  caseWhen(isTwo, () => 2).
+  caseDefault(() => 0)
+)
 ```
 
 

@@ -8,46 +8,156 @@
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { TypeMatcher, isAny } from "./matchers"
+import { TypeMatcher } from "./matchers"
 
 /**
- * Define a match case handler
+ * Cases for partial matches
+ * @private
  */
-export interface Case<A, R> {
-  map: (val: A) => R
-
-  caseWhen: <B>(matcher: TypeMatcher<B>, fn: (val: B) => R) => Case<A | B, R>
-
-  caseId: <B extends R>(matcher: TypeMatcher<B>) => Case<A, R>
-
-  caseDefault: (fn: (v: any) => R) => Case<any, R>
+export interface PartialMatchCase<A, R> {
+  /**
+   * partMap - maps value A to R on match, or returns def expression value
+   * @private
+   * @param val value to map
+   * @param def default value expresson, for match miss
+   */
+  partMap(val: A, def: () => R): R
 }
 
-class SwitchCase<A, B, R> implements Case<A | B, R> {
-  constructor(private matchA: TypeMatcher<A>,
-              private caseA: (val: A) => R,
-              private caseB: (val: B) => R) {
-  }
+/**
+ * MatchCase is basically a function between category A and R
+ */
+export interface MatchCase<A, R> {
+  /**
+   * Cases handler no default handler, depends on implementation
+   */
+  map(val: A): R
+}
 
-  map(val: A | B): R {
-    if (this.matchA(val)) {
-      return this.caseA(val)
+/**
+ * SingleCase - map type A to R or fail with an error
+ *
+ * ```
+ * caseWhen(isOne, id). // <- SingleCase
+ * caseWhen(isTwo, id). // <- DisjunctionCase, executes previous case and falls back to itself
+ * caseWhen(isThree, id). // <- one more DisjunctionCase
+ * caseDefault(() => c) // <- DefaultCase - adds default value expression
+ * ```
+ */
+export class SingleCase<M, A extends M, R> implements MatchCase<A, R>, PartialMatchCase<A, R> {
+  constructor(private readonly match: TypeMatcher<M>,
+              private readonly handle: (val: A) => R) {}
+
+  partMap(val: A, def: () => R): R {
+    if (this.match(val)) {
+      return this.handle(val)
     }
 
-    return this.caseB(val)
+    return def()
   }
 
-  caseWhen<C>(matcher: TypeMatcher<C>, fn: (val: C) => R): Case<A | B | C, R> {
-    return new SwitchCase<C, A | B, R>(matcher, fn, this.map)
+  map(val: A): R {
+    return this.partMap(val, () => {
+      throw new Error("no match")
+    })
   }
 
-  caseId<C extends R>(matcher: TypeMatcher<C>): Case<A | B, R> {
-    return this.caseWhen(matcher, _ => _)
+  /**
+   * Add a disjunction case
+   */
+  caseWhen<N, B extends N>(match: TypeMatcher<N>, handle: (val: B) => R): DisjunctionCase<M, A, N, B, R> {
+    return new DisjunctionCase(
+      new SingleCase(this.match, this.handle), // head case - handled first
+      new SingleCase(match, handle) // tail case - handled last
+    )
   }
 
-  caseDefault(fn: (val: any) => R): Case<any, R> {
-    return this.caseWhen(isAny, fn)
+  caseDefault(def: () => R): DefaultCase<R> {
+    return new DefaultCase(this, def)
   }
+}
+
+/**
+ * DisjunctionCase - composes tail and head cases
+ *
+ * @param tailCases - chain of previous cases, tail executes first
+ * @param headCase - head case (referenced), to be executed last in the chain
+ */
+export class DisjunctionCase<M, A extends M, N, B extends N, R> implements MatchCase<A | B, R>, PartialMatchCase<A | B, R> {
+  constructor(
+    private readonly tailCases: PartialMatchCase<any, R>,
+    private readonly headCase: PartialMatchCase<any, R>) {
+  }
+
+  partMap(val: A | B, def: () => R): R {
+    return this.tailCases.partMap(val, (): R => {
+      return this.headCase.partMap(val, def)
+    })
+  }
+
+  /**
+   * When called directly on DisjunctionCase - will throw an error if input value not covered
+   */
+  map(val: A | B): R {
+    return this.partMap(val, () => {
+      throw new Error("no match")
+    })
+  }
+
+  caseWhen<U, C extends U>(match: TypeMatcher<U>, handle: (val: C) => R): DisjunctionCase<M | N, A | B, U, C, R> {
+    return new DisjunctionCase<M | N, A | B, U, C, R>(
+      this.tailCases,
+      new SingleCase<U, C, R>(match, handle)
+    )
+  }
+
+  caseDefault(def: () => R): DefaultCase<R> {
+    return new DefaultCase(this, def)
+  }
+}
+
+/**
+ * Last case in a chain of cases (default)
+ */
+export class DefaultCase<R> implements MatchCase<any, R> {
+  constructor(
+    private readonly tailCase: PartialMatchCase<any, R>,
+    private readonly def: () => R) {
+  }
+
+  map(val: any): R {
+    return this.tailCase.partMap(val, this.def)
+  }
+}
+
+/**
+ * Case always evaluates to given expression result
+ */
+export class EvalCase<R> implements MatchCase<any, R> {
+  constructor(private readonly val: () => R) {}
+
+  map(val: any): R {
+    return this.val()
+  }
+}
+
+/**
+ * Case handler for type A
+ *
+ * @param match matcher used to verify input value
+ * @param map map function
+ */
+export function caseWhen<M, A extends M, R>(match: TypeMatcher<M>, map: (val: A) => R): SingleCase<M, A, R> {
+  return new SingleCase(match, map)
+}
+
+/**
+ * Create new default case handler - matches any type
+ *
+ * @param val default value expression
+ */
+export function caseDefault<R>(val: () => R): EvalCase<R> {
+  return new EvalCase(val)
 }
 
 /**
@@ -57,35 +167,6 @@ class SwitchCase<A, B, R> implements Case<A | B, R> {
  * @param val input value to match
  * @param cases match cases
  */
-export function match<I extends C, C, R>(val: I, cases: Case<C, R>): R {
+export function match<I extends C, C, R>(val: I, cases: MatchCase<C, R>): R {
   return cases.map(val)
-}
-
-/**
- * Case handler for type A
- *
- * @param matcher matcher used to verify input value
- * @param fn handler function
- */
-export function caseWhen<A, R>(matcher: TypeMatcher<A>, fn: (val: A) => R): Case<A, R> {
-    return new SwitchCase<A, never, R>(matcher, fn, () => { throw new Error("No match") })
-}
-
-/**
- * Identity case, passes input value
- *
- * Equivalent to caseWhen(matcher, _ => _)
- * @param matcher input value type matcher
- */
-export function caseId<A>(matcher: TypeMatcher<A>): Case<A, A> {
-  return caseWhen(matcher, _ => _)
-}
-
-/**
- * Create new default case handler - matches any type
- *
- * @param fn handler function
- */
-export function caseDefault<R>(fn: (val: any) => R): Case<any, R> {
-  return caseWhen(isAny, fn)
 }

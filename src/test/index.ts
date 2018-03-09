@@ -16,7 +16,7 @@ import {
   isString, isUndefined, isValue,
   isTuple1, isTuple2, isTuple3, isTuple4, isTuple5, isTuple6, isTuple7, isTuple8, isTuple9,
   isTuple10, isBoth, isEither, isOptional, isNullable, refined,
-  match, caseWhen, caseDefault, caseId, failWith, isInstanceOf, isObjectMapOf, Case
+  match, caseWhen, caseDefault, failWith, isInstanceOf, isObjectMapOf, MatchCase
 } from "../lib"
 
 describe("Matchers", () => {
@@ -768,20 +768,13 @@ describe("Match DSL", function () {
   describe("caseWhen", () => {
     it("builds new match case", () => {
       const isOne: TypeMatcher<"one"> = (val: any): val is "one" => val === "one"
-      const c: Case<"one", 1> = caseWhen(isOne, (one): 1 => 1)
+      const c: MatchCase<"one", 1> = caseWhen(isOne, (one): 1 => 1)
       expect(c.map("one")).equals(1)
     })
 
     it("will throw on error when input doesn't match (may be caused by buggy type matchers", () => {
       const isTen: TypeMatcher<10> = (val: any): val is 10 => false
       expect(() => caseWhen(isTen, _ => _ * 2).map(10)).throws("No match")
-    })
-  })
-
-  describe("caseId", () => {
-    it("will pass input value on match", () => {
-      expect(caseId(isNumber).map(10)).equals(10)
-      expect(caseId(isValue<"test">("test")).map("test")).equals("test")
     })
   })
 
