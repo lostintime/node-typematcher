@@ -118,6 +118,17 @@ export function isArrayOf<T>(matcher: TypeMatcher<T>): TypeMatcher<Array<T>> {
 }
 
 /**
+ * Checks value equality
+ *
+ * WARNING: always set type hint explicitly, otherwise - exhaustive checks will not work
+ */
+export function isValue<T>(v: T): TypeMatcher<T> {
+  return function value(val: any): val is T {
+    return v === val
+  }
+}
+
+/**
  * Match null
  */
 export function isNull(val: any): val is null {
