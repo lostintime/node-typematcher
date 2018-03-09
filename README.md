@@ -166,7 +166,7 @@ const isOne = (val: any): val is "one" => val === "one"
 const isTwo = (val: any): val is "two" => val === "two"
 const isOneOrTwo = (val: any): val is OneOrTwo => isOne(val) || isTwo(val)
 
-// Removing one of match cases handlers will cause a compilation error (exhaustive check)
+// Removing one of match cases handlers will cause a compilation error (exhaustive matching)
 const r1: number = match("one" as OneOrTwo,
   caseWhen(isOne, () => 1).
   caseWhen(isTwo, () => 2)

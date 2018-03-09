@@ -13,8 +13,7 @@ import {
   TypeMatcher, Refined,
   hasFields,
   isAny, isArrayOf, isBoolean, isFiniteNumber, isMissing, isNever, isNull, isNumber, isObject,
-  isString, isUndefined, isValue,
-  isTuple1, isTuple2, isTuple3, isTuple4, isTuple5, isTuple6, isTuple7, isTuple8, isTuple9,
+  isString, isUndefined, isTuple1, isTuple2, isTuple3, isTuple4, isTuple5, isTuple6, isTuple7, isTuple8, isTuple9,
   isTuple10, isBoth, isEither, isOptional, isNullable, refined,
   match, caseWhen, caseDefault, failWith, isInstanceOf, isObjectMapOf, MatchCase
 } from "../lib"
@@ -218,35 +217,6 @@ describe("Matchers", () => {
     })
   })
 
-  describe("isValue", () => {
-    it("should exactly match values", () => {
-      expect(isValue(10)(10)).equals(true)
-      expect(isValue("one")("one")).equals(true)
-      expect(isValue(true)(true)).equals(true)
-      expect(isValue(Infinity)(Infinity)).equals(true)
-      const x = new String("hello")
-      expect(isValue(x)(x)).equals(true)
-    })
-
-    it("should not match values with different types", () => {
-      expect(isValue("10")(10)).equals(false)
-      expect(isValue(0)(false)).equals(false)
-      expect(isValue(1)(true)).equals(false)
-      expect(isValue(NaN)(NaN)).equals(false)
-    })
-
-    it("should not match different values with same type", () => {
-      expect(isValue("10")("20")).equals(false)
-      expect(isValue(1)(1.1)).equals(false)
-      expect(isValue(true)(false)).equals(false)
-    })
-
-    it("should not match different object instances", () => {
-      expect(isValue(new String("hello"))(new String("hello"))).equals(false)
-      expect(isValue(new Number(10))(new Number(10))).equals(false)
-    })
-  })
-
   describe("isNull", () => {
     it("should match for null", () => {
       expect(isNull(null)).equals(true)
@@ -312,15 +282,19 @@ describe("Matchers", () => {
 
     it("should match object with matching fields", () => {
       expect(hasFields({ key: isNumber })({ key: 10 })).equals(true)
-      expect(hasFields({ x: isValue(10) })({ x: 10 })).equals(true)
+      expect(hasFields({ x: refined(isNumber)(_ => _ === 10, "IsTen") })({ x: 10 })).equals(true)
       expect(hasFields({ name: isString })({ x: 10, y: 20, name: "testing" })).equals(true)
-      expect(hasFields({ a: isValue("one"), b: isValue(20), c: isNull })({
+      expect(hasFields({
+        a: refined(isString)(_ => _ === "one", "IsOne"),
+        b: refined(isNumber)(_ => _ === 20, "Is20"),
+        c: isNull
+      })({
         a: "one",
         b: 20,
         c: null
       })).equals(true)
       expect(hasFields({ length: isNumber })([])).equals(true)
-      expect(hasFields({ length: isValue(2) })([1, 2])).equals(true)
+      expect(hasFields({ length: refined(isNumber)(_ => _ === 2, "AnyVal") })([1, 2])).equals(true)
     })
 
     it("should match missing fields for undefined matcher", () => {
@@ -335,7 +309,7 @@ describe("Matchers", () => {
 
     it("should not match objects with wrong field types", () => {
       expect(hasFields({ key: isNumber })({ key: "10" })).equals(false)
-      expect(hasFields({ key: isValue("20") })({ key: "10" })).equals(false)
+      expect(hasFields({ key: refined(isString)(_ => _ === "20", "20") })({ key: "10" })).equals(false)
       expect(hasFields({ key: isNumber, value: isNumber })({
         key: 10,
         value: "wrong number"
@@ -597,7 +571,10 @@ describe("Matchers", () => {
   })
 
   describe("isTuple10", () => {
-    const isT10 = isTuple10(isNumber, isString, isBoolean, isNumber, isNumber, isString, isNull, isBoolean, isString, isValue(3))
+    const isT10 = isTuple10(
+      isNumber, isString, isBoolean, isNumber, isNumber, isString, isNull,
+      isBoolean, isString, refined(isNumber)(_ => _ === 3, "3")
+    )
 
     it("should match on valid tuples", () => {
       expect(isT10([10, "ten", false, 2, 3, "s", null, true, "9", 3])).equals(true)
@@ -622,29 +599,32 @@ describe("Matchers", () => {
 
   describe("isBoth", () => {
     it("should match when both matches", () => {
-      expect(isBoth(isNumber, isValue(10))(10)).equals(true)
-      expect(isBoth(hasFields({ key: isString }), hasFields({ value: isValue(10) }))({
+      expect(isBoth(isNumber, refined(isNumber)(_ => _ === 10, "10"))(10)).equals(true)
+      expect(isBoth(
+        hasFields({ key: isString }),
+        hasFields({ value: refined(isNumber)(_ => _ === 10, "10") })
+      )({
         key: "key",
         value: 10
       })).equals(true)
     })
 
     it("should not match when one does't match", () => {
-      expect(isBoth(isNumber, isValue(20))(30)).equals(false)
+      expect(isBoth(isNumber, refined(isNumber)(_ => _ === 20, "20"))(30)).equals(false)
       expect(isBoth(isString, isNumber)(10)).equals(false)
     })
   })
 
   describe("isEither", () => {
     it("should match when one matches", () => {
-      expect(isEither(isNumber, isValue(20))(10)).equals(true)
+      expect(isEither(isNumber, refined(isNumber)(_ => _ === 20, "20"))(10)).equals(true)
       expect(isEither(isNumber, isString)(10)).equals(true)
       expect(isEither(isNumber, isString)("str")).equals(true)
     })
 
     it("should not match when none match", () => {
-      expect(isBoth(isNumber, isValue(20))("str")).equals(false)
-      expect(isBoth(isString, isValue(30))(10)).equals(false)
+      expect(isBoth(isNumber, refined(isNumber)(_ => _ === 20, "20"))("str")).equals(false)
+      expect(isBoth(isString, refined(isNumber)(_ => _ === 30, "30"))(10)).equals(false)
     })
   })
 
@@ -656,15 +636,15 @@ describe("Matchers", () => {
     })
 
     it("should not match for other types", () => {
-      expect(isOptional(isValue(-1))(NaN)).equals(false)
-      expect(isOptional(isValue(-1))(Infinity)).equals(false)
-      expect(isOptional(isValue(-1))(1)).equals(false)
-      expect(isOptional(isValue(-1))(0)).equals(false)
-      expect(isOptional(isValue(-1))(1.3)).equals(false)
-      expect(isOptional(isValue(-1))("true")).equals(false)
-      expect(isOptional(isValue(-1))(false)).equals(false)
-      expect(isOptional(isValue(-1))({})).equals(false)
-      expect(isOptional(isValue(-1))(null)).equals(false)
+      expect(isOptional(refined(isNumber)(_ => _ === -1, "-1"))(NaN)).equals(false)
+      expect(isOptional(refined(isNumber)(_ => _ === -1, "-1"))(Infinity)).equals(false)
+      expect(isOptional(refined(isNumber)(_ => _ === -1, "-1"))(1)).equals(false)
+      expect(isOptional(refined(isNumber)(_ => _ === -1, "-1"))(0)).equals(false)
+      expect(isOptional(refined(isNumber)(_ => _ === -1, "-1"))(1.3)).equals(false)
+      expect(isOptional(refined(isNumber)(_ => _ === -1, "-1"))("true")).equals(false)
+      expect(isOptional(refined(isNumber)(_ => _ === -1, "-1"))(false)).equals(false)
+      expect(isOptional(refined(isNumber)(_ => _ === -1, "-1"))({})).equals(false)
+      expect(isOptional(refined(isNumber)(_ => _ === -1, "-1"))(null)).equals(false)
     })
   })
 
@@ -676,15 +656,15 @@ describe("Matchers", () => {
     })
 
     it("should not match for other types", () => {
-      expect(isNullable(isValue(-1))(NaN)).equals(false)
-      expect(isNullable(isValue(-1))(Infinity)).equals(false)
-      expect(isNullable(isValue(-1))(1)).equals(false)
-      expect(isNullable(isValue(-1))(0)).equals(false)
-      expect(isNullable(isValue(-1))(1.3)).equals(false)
-      expect(isNullable(isValue(-1))("true")).equals(false)
-      expect(isNullable(isValue(-1))(false)).equals(false)
-      expect(isNullable(isValue(-1))({})).equals(false)
-      expect(isNullable(isValue(-1))(undefined)).equals(false)
+      expect(isNullable(refined(isNumber)(_ => _ === -1, "-1"))(NaN)).equals(false)
+      expect(isNullable(refined(isNumber)(_ => _ === -1, "-1"))(Infinity)).equals(false)
+      expect(isNullable(refined(isNumber)(_ => _ === -1, "-1"))(1)).equals(false)
+      expect(isNullable(refined(isNumber)(_ => _ === -1, "-1"))(0)).equals(false)
+      expect(isNullable(refined(isNumber)(_ => _ === -1, "-1"))(1.3)).equals(false)
+      expect(isNullable(refined(isNumber)(_ => _ === -1, "-1"))("true")).equals(false)
+      expect(isNullable(refined(isNumber)(_ => _ === -1, "-1"))(false)).equals(false)
+      expect(isNullable(refined(isNumber)(_ => _ === -1, "-1"))({})).equals(false)
+      expect(isNullable(refined(isNumber)(_ => _ === -1, "-1"))(undefined)).equals(false)
     })
   })
 

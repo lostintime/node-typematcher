@@ -118,30 +118,17 @@ export function isArrayOf<T>(matcher: TypeMatcher<T>): TypeMatcher<Array<T>> {
 }
 
 /**
- * Match exact value
- */
-export function isValue<T>(v: T): TypeMatcher<T> {
-  return function value(val: any): val is T {
-    return v === val
-  }
-}
-
-const isNullF = isValue(null)
-
-/**
  * Match null
  */
 export function isNull(val: any): val is null {
-  return isNullF(val)
+  return val === null
 }
-
-const isUndefinedF = isValue(undefined)
 
 /**
  * Match undefined
  */
 export function isUndefined(val: any): val is undefined {
-  return isUndefinedF(val)
+  return val === undefined
 }
 
 const isMissingF = isEither(isNull, isUndefined)

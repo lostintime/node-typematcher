@@ -58,7 +58,7 @@ export class SingleCase<M, A extends M, R> implements MatchCase<A, R>, PartialMa
 
   map(val: A): R {
     return this.partMap(val, () => {
-      throw new Error("no match")
+      throw new Error("No match")
     })
   }
 
@@ -100,7 +100,7 @@ export class DisjunctionCase<M, A extends M, N, B extends N, R> implements Match
    */
   map(val: A | B): R {
     return this.partMap(val, () => {
-      throw new Error("no match")
+      throw new Error("No match")
     })
   }
 
