@@ -803,6 +803,52 @@ describe("Match DSL", function () {
         .caseWhen(isNumber, (_): 3 => 3)
         .map("hello")
     })
+
+    it("should check cases in order those was defined", () => {
+      let cnt = 0
+      const cases = caseWhen(
+        (val: any): val is boolean => {
+          expect(cnt).equals(0)
+          cnt += 1
+          return isBoolean(val)
+          },
+          () => cnt
+        ).
+        caseWhen(
+          (val: any): val is string => {
+            expect(cnt).equals(1)
+            cnt += 1
+            return isString(val)
+          },
+          () => cnt
+        ).
+        caseWhen(
+          (val: any): val is number => {
+            expect(cnt).equals(2)
+            cnt += 1
+            return isNumber(val)
+          },
+          () => cnt
+        ).
+        caseWhen(
+          (val: any): val is number => {
+            expect(cnt).equals(3)
+            cnt += 1
+            return isFiniteNumber(val)
+          },
+          () => cnt
+        ).
+        caseWhen(
+          (val: any): val is object => {
+            expect(cnt).equals(4)
+            cnt += 1
+            return isObject(val)
+          },
+          () => cnt
+        )
+
+      expect(cases.map({})).equals(5)
+    })
   })
 
   describe("caseDefault", () => {
