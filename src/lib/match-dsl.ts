@@ -65,15 +65,15 @@ export class SingleCase<M, A extends M, R> implements MatchCase<A, R>, PartialMa
   /**
    * Add a disjunction case
    */
-  caseWhen<N, B extends N>(match: TypeMatcher<N>, handle: (val: B) => R): DisjunctionCase<M, A, N, B, R> {
+  caseWhen<N, B extends N, R2>(match: TypeMatcher<N>, handle: (val: B) => R2): DisjunctionCase<M, A, R, N, B, R2> {
     return new DisjunctionCase(
       new SingleCase(this.match, this.handle), // head case - handled first
       new SingleCase(match, handle) // tail case - handled last
     )
   }
 
-  caseDefault(def: () => R): DefaultCase<R> {
-    return new DefaultCase(this, def)
+  caseDefault<R2>(def: () => R2): DefaultCase<R | R2> {
+    return new DefaultCase<R | R2>(this, def)
   }
 }
 
@@ -83,14 +83,14 @@ export class SingleCase<M, A extends M, R> implements MatchCase<A, R>, PartialMa
  * @param tailCases - chain of previous cases, tail executes first
  * @param headCase - head case (referenced), to be executed last in the chain
  */
-export class DisjunctionCase<M, A extends M, N, B extends N, R> implements MatchCase<A | B, R>, PartialMatchCase<A | B, R> {
+export class DisjunctionCase<M, A extends M, R, N, B extends N, R2> implements MatchCase<A | B, R | R2>, PartialMatchCase<A | B, R | R2> {
   constructor(
-    private readonly tailCases: PartialMatchCase<any, R>,
-    private readonly headCase: PartialMatchCase<any, R>) {
+    private readonly tailCases: PartialMatchCase<any, R | R2>,
+    private readonly headCase: PartialMatchCase<any, R | R2>) {
   }
 
-  partMap(val: A | B, def: () => R): R {
-    return this.tailCases.partMap(val, (): R => {
+  partMap(val: A | B, def: () => R | R2): R | R2 {
+    return this.tailCases.partMap(val, (): R | R2 => {
       return this.headCase.partMap(val, def)
     })
   }
@@ -98,21 +98,21 @@ export class DisjunctionCase<M, A extends M, N, B extends N, R> implements Match
   /**
    * When called directly on DisjunctionCase - will throw an error if input value not covered
    */
-  map(val: A | B): R {
+  map(val: A | B): R | R2 {
     return this.partMap(val, () => {
       throw new Error("No match")
     })
   }
 
-  caseWhen<U, C extends U>(match: TypeMatcher<U>, handle: (val: C) => R): DisjunctionCase<M | N, A | B, U, C, R> {
-    return new DisjunctionCase<M | N, A | B, U, C, R>(
+  caseWhen<U, C extends U, R3>(match: TypeMatcher<U>, handle: (val: C) => R3): DisjunctionCase<M | N, A | B, R | R2, U, C, R3> {
+    return new DisjunctionCase<M | N, A | B, R | R2, U, C, R3>(
       this.tailCases,
-      new SingleCase<U, C, R>(match, handle)
+      new SingleCase(match, handle)
     )
   }
 
-  caseDefault(def: () => R): DefaultCase<R> {
-    return new DefaultCase(this, def)
+  caseDefault<R3>(def: () => R3): DefaultCase<R | R2 | R3> {
+    return new DefaultCase<R | R2 | R3>(this, def)
   }
 }
 

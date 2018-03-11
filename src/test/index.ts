@@ -783,6 +783,18 @@ describe("Match DSL", function () {
         caseWhen(isNumber, _ => _)
       )
     })
+
+    it("should compose result types", () => {
+      const x1: 0 | 1 | 2 = caseWhen(isBoolean, (_): 0 => 0)
+        .caseWhen(isString, (_): 1 => 1)
+        .caseWhen(isNumber, (_): 2 => 2)
+        .map("hello")
+
+      const x2: 0 | 1 | 2 | 3 = caseWhen(isBoolean, _ => _ ? 1 : 0) // result type inferred as 1 | 0
+        .caseWhen(isString, _ => _.length > 0 ? 2 : 1) // result type inferred as 2 | 1
+        .caseWhen(isNumber, (_): 3 => 3)
+        .map("hello")
+    })
   })
 
   describe("caseDefault", () => {
