@@ -785,12 +785,20 @@ describe("Match DSL", function () {
     })
 
     it("should compose result types", () => {
-      const x1: 0 | 1 | 2 = caseWhen(isBoolean, (_): 0 => 0)
+      const cases = caseWhen(isBoolean, (_): 0 => 0)
         .caseWhen(isString, (_): 1 => 1)
         .caseWhen(isNumber, (_): 2 => 2)
-        .map("hello")
 
-      const x2: 0 | 1 | 2 | 3 = caseWhen(isBoolean, _ => _ ? 1 : 0) // result type inferred as 1 | 0
+      const x1: 0 | 1 | 2 = cases.map(true)
+      expect(x1).equals(0)
+
+      const x2: 0 | 1 | 2 = cases.map("hello")
+      expect(x2).equals(1)
+
+      const x3: 0 | 1 | 2 = cases.map(10)
+      expect(x3).equals(2)
+
+      const y1: 0 | 1 | 2 | 3 = caseWhen(isBoolean, _ => _ ? 1 : 0) // result type inferred as 1 | 0
         .caseWhen(isString, _ => _.length > 0 ? 2 : 1) // result type inferred as 2 | 1
         .caseWhen(isNumber, (_): 3 => 3)
         .map("hello")

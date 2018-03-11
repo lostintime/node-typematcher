@@ -106,7 +106,7 @@ export class DisjunctionCase<M, A extends M, R, N, B extends N, R2> implements M
 
   caseWhen<U, C extends U, R3>(match: TypeMatcher<U>, handle: (val: C) => R3): DisjunctionCase<M | N, A | B, R | R2, U, C, R3> {
     return new DisjunctionCase<M | N, A | B, R | R2, U, C, R3>(
-      this.tailCases,
+      this,
       new SingleCase(match, handle)
     )
   }
