@@ -14,7 +14,7 @@ import {
   isAny, isArrayOf, isBoolean, isFiniteNumber, isMissing, isNever, isNull, isNumber, isObject,
   isString, isUndefined, isTuple1, isTuple2, isTuple3, isTuple4, isTuple5, isTuple6, isTuple7, isTuple8, isTuple9,
   isTuple10, isBoth, isEither, isOptional, isNullable, refined,
-  match, caseWhen, caseDefault, failWith, isInstanceOf, isObjectMapOf, MatchCase
+  match, caseWhen, caseDefault, failWith, isInstanceOf, isObjectMapOf, MatchCase, matcher
 } from "../lib"
 
 describe("Matchers", () => {
@@ -761,6 +761,13 @@ describe("Match DSL", function () {
           return "executed"
         })
       )).equals("executed")
+    })
+  })
+
+  describe("matcher", () => {
+    it("returns a function which calls Case.map", () => {
+      const numberToString: (n: number) => string = matcher(caseWhen(isNumber, n => `${n}`))
+      expect(numberToString(10)).equals("10")
     })
   })
 

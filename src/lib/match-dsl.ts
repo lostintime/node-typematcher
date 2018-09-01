@@ -170,3 +170,27 @@ export function caseDefault<R>(val: () => R): EvalCase<R> {
 export function match<I extends C, C, R>(val: I, cases: MatchCase<C, R>): R {
   return cases.map(val)
 }
+
+/**
+ * Builds an unary function C => R using a MatchCase instance (syntactic sugar over MatchCase.map to trick compiler)
+ *
+ * It is useful to define type encoders/decoders, ex:
+ * ```typescript
+ * type Name = {
+ *   firstName: string
+ *   lastName = string
+ * }
+ *
+ * const Name: (val: unknown) => Name | null = matcher(
+ *   caseWhen(isName, (_): Name => _).
+ *   caseDefault(() => null)
+ * )
+ *
+ * const name: Name | null = Name({})
+ * ```
+ *
+ * @param cases match cases
+ */
+export function matcher<I extends C, C, R>(cases: MatchCase<C, R>): (val: C) => R {
+  return val => cases.map(val)
+}
