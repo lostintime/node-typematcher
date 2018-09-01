@@ -85,8 +85,8 @@ export class SingleCase<M, A extends M, R> implements MatchCase<A, R>, PartialMa
  */
 export class DisjunctionCase<M, A extends M, R, N, B extends N, R2> implements MatchCase<A | B, R | R2>, PartialMatchCase<A | B, R | R2> {
   constructor(
-    private readonly tailCases: PartialMatchCase<any, R | R2>,
-    private readonly headCase: PartialMatchCase<any, R | R2>) {
+    private readonly tailCases: PartialMatchCase<unknown, R | R2>,
+    private readonly headCase: PartialMatchCase<unknown, R | R2>) {
   }
 
   partMap(val: A | B, def: () => R | R2): R | R2 {
@@ -119,13 +119,13 @@ export class DisjunctionCase<M, A extends M, R, N, B extends N, R2> implements M
 /**
  * Last case in a chain of cases (default)
  */
-export class DefaultCase<R> implements MatchCase<any, R> {
+export class DefaultCase<R> implements MatchCase<unknown, R> {
   constructor(
-    private readonly tailCase: PartialMatchCase<any, R>,
+    private readonly tailCase: PartialMatchCase<unknown, R>,
     private readonly def: () => R) {
   }
 
-  map(val: any): R {
+  map(val: unknown): R {
     return this.tailCase.partMap(val, this.def)
   }
 }
@@ -133,10 +133,10 @@ export class DefaultCase<R> implements MatchCase<any, R> {
 /**
  * Case always evaluates to given expression result
  */
-export class EvalCase<R> implements MatchCase<any, R> {
+export class EvalCase<R> implements MatchCase<unknown, R> {
   constructor(private readonly val: () => R) {}
 
-  map(val: any): R {
+  map(val: unknown): R {
     return this.val()
   }
 }

@@ -11,7 +11,7 @@
 /**
  * TypeMatcher is a function returning true if input val matches given type T
  */
-export type TypeMatcher<T> = (val: any) => val is T
+export type TypeMatcher<T> = (val: unknown) => val is T
 
 /**
  * Object fields type matchers structure
@@ -31,21 +31,21 @@ export type Throwable = Error | Object
 /**
  * Match any of input values
  */
-export function isAny(val: any): val is any {
+export function isAny(val: unknown): val is any {
   return true
 }
 
 /**
  * Match none of input values
  */
-export function isNever(val: any): val is any {
+export function isNever(val: unknown): val is never {
   return false
 }
 
 /**
  * Match string values
  */
-export function isString(val: any): val is string {
+export function isString(val: unknown): val is string {
   // Honestly stolen from https://github.com/lodash/lodash/blob/master/isString.js
   const type = typeof val
   return type === "string" || (type === "object" && val != null && !Array.isArray(val) && Object.prototype.toString.call(val) === "[object String]")
@@ -54,7 +54,7 @@ export function isString(val: any): val is string {
 /**
  * Match number values
  */
-export function isNumber(value: any): value is number {
+export function isNumber(value: unknown): value is number {
   // Honestly stolen from https://github.com/lodash/lodash/blob/master/isNumber.js
   return typeof value === "number" ||
     (typeof value === "object" && value !== null && Object.prototype.toString.call(value) === "[object Number]")
@@ -63,14 +63,14 @@ export function isNumber(value: any): value is number {
 /**
  * Match number values but not NaN or Infinite
  */
-export function isFiniteNumber(value: any): value is number {
+export function isFiniteNumber(value: unknown): value is number {
   return isNumber(value) && !isNaN(value) && isFinite(value)
 }
 
 /**
  * Match boolean values
  */
-export function isBoolean(value: any): value is boolean {
+export function isBoolean(value: unknown): value is boolean {
   // Honestly stolen from https://github.com/lodash/lodash/blob/master/isBoolean.js
   return value === true || value === false ||
     (typeof value === "object" && value !== null && Object.prototype.toString.call(value) === "[object Boolean]")
@@ -79,7 +79,7 @@ export function isBoolean(value: any): value is boolean {
 /**
  * Match object values
  */
-export function isObject(value: any): value is object {
+export function isObject(value: unknown): value is object {
   // Honestly stolen from https://github.com/lodash/lodash/blob/master/isObject.js
   const type = typeof value
   return value != null && (type === "object" || type === "function")
@@ -88,8 +88,8 @@ export function isObject(value: any): value is object {
 /**
  * Check value built with given constructor function
  */
-export function isInstanceOf<T>(fnCtor: new (...args: any[]) => T): TypeMatcher<T> {
-  return function value(val: any): val is T {
+export function isInstanceOf<T>(fnCtor: new (...args: unknown[]) => T): TypeMatcher<T> {
+  return function value(val: unknown): val is T {
     return val instanceof fnCtor
   }
 }
@@ -101,7 +101,7 @@ export function isInstanceOf<T>(fnCtor: new (...args: any[]) => T): TypeMatcher<
  * isArrayOf(isString)(["one", 1]) => false
  */
 export function isArrayOf<T>(matcher: TypeMatcher<T>): TypeMatcher<Array<T>> {
-  return function value(val: any): val is Array<T> {
+  return function value(val: unknown): val is Array<T> {
     if (Array.isArray(val)) {
       for (const item of val) {
         if (!matcher(item)) {
@@ -123,7 +123,7 @@ export function isArrayOf<T>(matcher: TypeMatcher<T>): TypeMatcher<Array<T>> {
  * WARNING: always set type hint explicitly, otherwise - exhaustive checks will not work
  */
 export function isLiteral<T extends string | number | boolean>(expected: T): TypeMatcher<T> {
-  return function value(val: any): val is T {
+  return function value(val: unknown): val is T {
     return expected === val
   }
 }
@@ -131,14 +131,14 @@ export function isLiteral<T extends string | number | boolean>(expected: T): Typ
 /**
  * Match null
  */
-export function isNull(val: any): val is null {
+export function isNull(val: unknown): val is null {
   return val === null
 }
 
 /**
  * Match undefined
  */
-export function isUndefined(val: any): val is undefined {
+export function isUndefined(val: unknown): val is undefined {
   return val === undefined
 }
 
@@ -147,7 +147,7 @@ const isMissingF = isEither(isNull, isUndefined)
 /**
  * Match null | undefined
  */
-export function isMissing(val: any): val is null | undefined {
+export function isMissing(val: unknown): val is null | undefined {
   return isMissingF(val)
 }
 
@@ -156,7 +156,7 @@ export function isMissing(val: any): val is null | undefined {
  * hasFields({id: isNumber})({id: "aloha"}) => false
  */
 export function hasFields<T>(matcher: FieldsMatcher<T>): TypeMatcher<T> {
-  return function value(val: any): val is T {
+  return function value(val: unknown): val is T {
     if (isObject(val)) {
       for (const pKey in matcher) {
         const v = val.hasOwnProperty(pKey) ? (val as any)[pKey] : undefined
@@ -177,7 +177,7 @@ export function hasFields<T>(matcher: FieldsMatcher<T>): TypeMatcher<T> {
 export type ObjectMapOf<T> = {[K in string]: T}
 
 export function isObjectMapOf<T>(matcher: TypeMatcher<T>): TypeMatcher<ObjectMapOf<T>> {
-  return function value(val: any): val is ObjectMapOf<T> {
+  return function value(val: unknown): val is ObjectMapOf<T> {
     if (isObject(val)) {
       for (const pKey in val) {
         if (!val.hasOwnProperty(pKey) || !matcher((val as any)[pKey])) {
@@ -196,7 +196,7 @@ export function isObjectMapOf<T>(matcher: TypeMatcher<T>): TypeMatcher<ObjectMap
  * Given array of matchers, and array - match every value using matcher from same position
  * this is internally used for tuples
  */
-function isExactArray(matcher: Array<TypeMatcher<any>>, val: any): val is Array<any> {
+function isExactArray(matcher: Array<TypeMatcher<unknown>>, val: unknown): val is Array<any> {
   if (Array.isArray(val) && val.length === matcher.length) {
     for (const k in matcher) {
       if (!matcher[k](val[k])) {
@@ -211,61 +211,61 @@ function isExactArray(matcher: Array<TypeMatcher<any>>, val: any): val is Array<
 }
 
 export function isTuple1<A>(a: TypeMatcher<A>): TypeMatcher<[A]> {
-  return function value(val: any): val is [A] {
+  return function value(val: unknown): val is [A] {
     return isExactArray([a], val)
   }
 }
 
 export function isTuple2<A, B>(a: TypeMatcher<A>, b: TypeMatcher<B>): TypeMatcher<[A, B]> {
-  return function value(val: any): val is [A, B] {
+  return function value(val: unknown): val is [A, B] {
     return isExactArray([a, b], val)
   }
 }
 
 export function isTuple3<A, B, C>(a: TypeMatcher<A>, b: TypeMatcher<B>, c: TypeMatcher<C>): TypeMatcher<[A, B, C]> {
-  return function value(val: any): val is [A, B, C] {
+  return function value(val: unknown): val is [A, B, C] {
     return isExactArray([a, b, c], val)
   }
 }
 
 export function isTuple4<A, B, C, D>(a: TypeMatcher<A>, b: TypeMatcher<B>, c: TypeMatcher<C>, d: TypeMatcher<D>): TypeMatcher<[A, B, C, D]> {
-  return function value(val: any): val is [A, B, C, D] {
+  return function value(val: unknown): val is [A, B, C, D] {
     return isExactArray([a, b, c, d], val)
   }
 }
 
 export function isTuple5<A, B, C, D, E>(a: TypeMatcher<A>, b: TypeMatcher<B>, c: TypeMatcher<C>, d: TypeMatcher<D>, e: TypeMatcher<E>): TypeMatcher<[A, B, C, D, E]> {
-  return function value(val: any): val is [A, B, C, D, E] {
+  return function value(val: unknown): val is [A, B, C, D, E] {
     return isExactArray([a, b, c, d, e], val)
   }
 }
 
 export function isTuple6<A, B, C, D, E, F>(a: TypeMatcher<A>, b: TypeMatcher<B>, c: TypeMatcher<C>, d: TypeMatcher<D>, e: TypeMatcher<E>, f: TypeMatcher<F>): TypeMatcher<[A, B, C, D, E, F]> {
-  return function value(val: any): val is [A, B, C, D, E, F] {
+  return function value(val: unknown): val is [A, B, C, D, E, F] {
     return isExactArray([a, b, c, d, e, f], val)
   }
 }
 
 export function isTuple7<A, B, C, D, E, F, G>(a: TypeMatcher<A>, b: TypeMatcher<B>, c: TypeMatcher<C>, d: TypeMatcher<D>, e: TypeMatcher<E>, f: TypeMatcher<F>, g: TypeMatcher<G>): TypeMatcher<[A, B, C, D, E, F, G]> {
-  return function value(val: any): val is [A, B, C, D, E, F, G] {
+  return function value(val: unknown): val is [A, B, C, D, E, F, G] {
     return isExactArray([a, b, c, d, e, f, g], val)
   }
 }
 
 export function isTuple8<A, B, C, D, E, F, G, H>(a: TypeMatcher<A>, b: TypeMatcher<B>, c: TypeMatcher<C>, d: TypeMatcher<D>, e: TypeMatcher<E>, f: TypeMatcher<F>, g: TypeMatcher<G>, h: TypeMatcher<H>): TypeMatcher<[A, B, C, D, E, F, G, H]> {
-  return function value(val: any): val is [A, B, C, D, E, F, G, H] {
+  return function value(val: unknown): val is [A, B, C, D, E, F, G, H] {
     return isExactArray([a, b, c, d, e, f, g, h], val)
   }
 }
 
 export function isTuple9<A, B, C, D, E, F, G, H, I>(a: TypeMatcher<A>, b: TypeMatcher<B>, c: TypeMatcher<C>, d: TypeMatcher<D>, e: TypeMatcher<E>, f: TypeMatcher<F>, g: TypeMatcher<G>, h: TypeMatcher<H>, i: TypeMatcher<I>): TypeMatcher<[A, B, C, D, E, F, G, H, I]> {
-  return function value(val: any): val is [A, B, C, D, E, F, G, H, I] {
+  return function value(val: unknown): val is [A, B, C, D, E, F, G, H, I] {
     return isExactArray([a, b, c, d, e, f, g, h, i], val)
   }
 }
 
 export function isTuple10<A, B, C, D, E, F, G, H, I, J>(a: TypeMatcher<A>, b: TypeMatcher<B>, c: TypeMatcher<C>, d: TypeMatcher<D>, e: TypeMatcher<E>, f: TypeMatcher<F>, g: TypeMatcher<G>, h: TypeMatcher<H>, i: TypeMatcher<I>, j: TypeMatcher<J>): TypeMatcher<[A, B, C, D, E, F, G, H, I, J]> {
-  return function value(val: any): val is [A, B, C, D, E, F, G, H, I, J] {
+  return function value(val: unknown): val is [A, B, C, D, E, F, G, H, I, J] {
     return isExactArray([a, b, c, d, e, f, g, h, i, j], val)
   }
 }
@@ -274,7 +274,7 @@ export function isTuple10<A, B, C, D, E, F, G, H, I, J>(a: TypeMatcher<A>, b: Ty
  * Builds new matcher for types matching both: matcher1 and matcher2
  */
 export function isBoth<A, B>(matcher1: TypeMatcher<A>, matcher2: TypeMatcher<B>): TypeMatcher<A & B> {
-  return function value(val: any): val is A & B {
+  return function value(val: unknown): val is A & B {
     return matcher1(val) && matcher2(val)
   }
 }
@@ -283,7 +283,7 @@ export function isBoth<A, B>(matcher1: TypeMatcher<A>, matcher2: TypeMatcher<B>)
  * Builds new matcher for types matching any of matcher1 or matcher2
  */
 export function isEither<A, B>(matcher1: TypeMatcher<A>, matcher2: TypeMatcher<B>): TypeMatcher<A | B> {
-  return function value(val: any): val is A | B {
+  return function value(val: unknown): val is A | B {
     return matcher1(val) || matcher2(val)
   }
 }
@@ -313,28 +313,32 @@ export function refined<U>(m: TypeMatcher<U>): <T extends string>(fn: (_: U) => 
   return <T extends string>(fn: (_: U) => boolean, tag: T): TypeMatcher<Refined<U, T>> => {
     const refn = fn as ((val: U) => val is (Refined<U, T>))
 
-    return (_: any): _ is Refined<U, T> => m(_) && refn(_)
+    return (_: unknown): _ is Refined<U, T> => m(_) && refn(_)
   }
 }
 
 /**
  * Builds new matcher which throws an error on miss
- * Can be used to provide more useful errors in combination with hasFields() and match()/matchWith()
+ * Can be used to provide more useful errors in combination with hasFields() and match()
+ * As throwing exceptions is not "the best way" to controll program flow - use this only for critical cases (panics)
  *
  * ```
- * const result = matchWith(
- *   caseId(
+ * const result = match({},
+ *   caseWhen(
  *     hasFields({
  *       title: failWith(new Error("Invalid title: string expected"))(isString),
  *       description: failWith(new Error('Invalid description: string or undefined expected'))(isOptional(isString)),
- *     })
+ *     }),
+ *     _ => _
  *   )
  * )
  * ```
+ *
+ * @deprecated do not throw, use disjunction data types
  */
 export function failWith(err: Throwable): <T>(matcher: TypeMatcher<T>) => TypeMatcher<T> {
   return function on<T>(matcher: TypeMatcher<T>): TypeMatcher<T> {
-    return function value(val: any): val is T {
+    return function value(val: unknown): val is T {
       if (matcher(val)) {
         return true
       }

@@ -62,7 +62,7 @@ Composing type matchers:
 
 ```typescript
 import {
-  match, caseWhen, caseId, caseDefault, isValue, hasFields, isString, isOptional, isNumber,
+  match, caseWhen, caseDefault, isValue, hasFields, isString, isOptional, isNumber,
   isEither, isNull
 } from 'typematcher'
 
@@ -101,7 +101,7 @@ const isUser: TypeMatcher<User> = hasFields({
 const user: any = { name: "John", role: 20 }
 
 const u: User | null = match(user,
-  caseId(isEither(isUser, isNull)).
+  caseWhen(isEither(isUser, isNull), _ => _).
   caseDefault(() => null)
 )
 ```
