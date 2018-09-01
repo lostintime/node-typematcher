@@ -113,76 +113,54 @@ For more examples - check links in documentation section.
 
 ### Case handlers type variance
 
-Avoid explicitly setting argument type in `caseWhen()` handler function, let type inferred by compiler.
+~~Avoid explicitly setting argument type in `caseWhen()` handler function, let type inferred by compiler.
 You may set more specific type, but check will bring you more general one and compiler will not fail.
-This is caused by TypeScript [Function Parameter Bivariance](https://www.typescriptlang.org/docs/handbook/type-compatibility.html).
-
-```typescript
-match(8,
-  caseWhen(isNumber, (n: 10) => "n is 10").
-  caseDefault(_ => "some defaults")
-)
-```
-
-vs
-
-```typescript
-match(8,
-  caseWhen(isNumber, n => {
-    const x: 10 = n // this will not compile: Type 'number' is not assignable to type '10'
-    return "n is 10"
-  }).
-  caseDefault(_ => "some default")
-)
-```
+This is caused by TypeScript [Function Parameter Bivariance](https://www.typescriptlang.org/docs/handbook/type-compatibility.html)
+_feature_.~~
 
 __UPD__: Typescript v2.6 brings `--strictFunctionTypes` compiler option and if it's on, for this code:
- 
+
 ```typescript
-match(8,
-  caseWhen(isNumber, (n: 10) => "n is 10").
-  caseDefault(_ => "some defaults")
-)
+match(8, caseWhen(isNumber, (n: 10) => "n is 10"))
 ```
 
 you will now get this error:
 
 ```
-error TS2345: Argument of type '(n: 10) => string' is not assignable to parameter of type '(v: number) => string'.
-  Types of parameters 'n' and 'v' are incompatible.
-    Type 'number' is not assignable to type '10'.
+error TS2345: Argument of type '8' is not assignable to parameter of type '10'.
+
+  match(8, caseWhen(isNumber, (n: 10) => "n is 10"))
+        ~
 ```
 
-### Add `caseDefault` for `any` input values
+### Use `caseDefault` at the end
 
-Because `any` type is _bivariant_ compiler cannot guess either will match cases fully cover input
- values or not, so when have to handle value of type `any` - always add default case handler.
- 
- When input type is known - there is no need for default:
+~~`match` will execute all cases as provided, so first matching will return,
+use `caseDefault`, `caseAny` last.~~
+
+New match DSL introduced in `typematcher@0.8.0` brought compile-time exhaustivity checking, so this code:
 
 ```typescript
-type OneOrTwo = "one" | "two"
-const isOne = (val: any): val is "one" => val === "one"
-const isTwo = (val: any): val is "two" => val === "two"
-const isOneOrTwo = (val: any): val is OneOrTwo => isOne(val) || isTwo(val)
-
-// Removing one of match cases handlers will cause a compilation error (exhaustive matching)
-const r1: number = match("one" as OneOrTwo,
-  caseWhen(isOne, () => 1).
-  caseWhen(isTwo, () => 2)
+const x: "ten" | "twenty" = match(8 as any, 
+  caseWhen(isString, () => "ten")
 )
+```
 
-// This will not fail on compilation, but definitely fail at runtime :(
-const r2: number = match("three" as any,
-  caseWhen(isOne, () => 1).
-  caseWhen(isTwo, () => 2)
-)
+will fail at compile time with:
 
-// Handle default
-const r3: number = match("three" as any,
-  caseWhen(isOne, () => 1).
-  caseWhen(isTwo, () => 2).
-  caseDefault(() => 0)
+```
+error TS2322: Type 'string' is not assignable to type '"ten" | "twenty"'.
+
+  const x: "ten" | "twenty" = match(8 as any,
+        ~
+```
+
+But you still have to handle default case when `any` result type is expected (which is highly not recommended), otherwise it may fail with `No match` error at runtime.
+
+```typescript
+const x: any = match(8 as any, 
+  caseWhen(isString, () => "ten").
+  caseDefault(() => "twenty")
 )
 ```
 
@@ -195,6 +173,8 @@ Fork, Contribute, Push, Create pull request, Thanks.
 
 ## Documentation
 
-Check latest sources on github: https://github.com/lostintime/node-typematcher
+Check latest sources on github: https://github.com/lostintime/node-typematcher.
+
+[Pattern matching for typescript](https://lostintimedev.com/2017/09/06/typematcher-pattern-matching-library-for-typescript.html) blog post.
 
 Funfix binding: [https://github.com/lostintime/node-typematcher-funfix](https://github.com/lostintime/node-typematcher-funfix).
