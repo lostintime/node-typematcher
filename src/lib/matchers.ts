@@ -319,18 +319,22 @@ export function refined<U>(m: TypeMatcher<U>): <T extends string>(fn: (_: U) => 
 
 /**
  * Builds new matcher which throws an error on miss
- * Can be used to provide more useful errors in combination with hasFields() and match()/matchWith()
+ * Can be used to provide more useful errors in combination with hasFields() and match()
+ * As throwing exceptions is not "the best way" to controll program flow - use this only for critical cases (panics)
  *
  * ```
- * const result = matchWith(
- *   caseId(
+ * const result = match({},
+ *   caseWhen(
  *     hasFields({
  *       title: failWith(new Error("Invalid title: string expected"))(isString),
  *       description: failWith(new Error('Invalid description: string or undefined expected'))(isOptional(isString)),
- *     })
+ *     }),
+ *     _ => _
  *   )
  * )
  * ```
+ *
+ * @deprecated do not throw, use disjunction data types
  */
 export function failWith(err: Throwable): <T>(matcher: TypeMatcher<T>) => TypeMatcher<T> {
   return function on<T>(matcher: TypeMatcher<T>): TypeMatcher<T> {
