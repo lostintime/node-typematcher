@@ -174,6 +174,25 @@ export function hasFields<T>(matcher: FieldsMatcher<T>): TypeMatcher<T> {
   }
 }
 
+export function hasOptionalFields<T>(matcher: FieldsMatcher<T>): TypeMatcher<Partial<T>> {
+  return function value(val: unknown): val is T {
+    if (isObject(val)) {
+      for (const pKey in matcher) {
+        const v = val.hasOwnProperty(pKey) ? (val as any)[pKey] : undefined
+
+        if (v !== undefined && !matcher[pKey](v)) {
+          // one of required fields doesn't match, fail fast
+          return false
+        }
+      }
+
+      return true
+    }
+
+    return false
+  }
+}
+
 export type ObjectMapOf<T> = {[K in string]: T}
 
 export function isObjectMapOf<T>(matcher: TypeMatcher<T>): TypeMatcher<ObjectMapOf<T>> {

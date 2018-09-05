@@ -14,7 +14,7 @@ import {
   isAny, isArrayOf, isBoolean, isFiniteNumber, isMissing, isNever, isNull, isNumber, isObject,
   isString, isUndefined, isTuple1, isTuple2, isTuple3, isTuple4, isTuple5, isTuple6, isTuple7, isTuple8, isTuple9,
   isTuple10, isBoth, isEither, isOptional, isNullable, refined,
-  match, caseWhen, caseDefault, failWith, isInstanceOf, isObjectMapOf, MatchCase, matcher
+  match, caseWhen, caseDefault, failWith, isInstanceOf, isObjectMapOf, MatchCase, matcher, hasOptionalFields
 } from "../lib"
 
 describe("Matchers", () => {
@@ -344,6 +344,35 @@ describe("Matchers", () => {
       expect(hf(1.3)).equals(false)
       expect(hf("true")).equals(false)
       expect(hf(false)).equals(false)
+    })
+  })
+
+  describe("hasOptionalFields", () => {
+    it("should match with missing fields", () => {
+      const isNamed: TypeMatcher<Partial<{ name: string }>> = hasOptionalFields<{ name: string }>({
+        name: isString
+      })
+      expect(isNamed({})).equals(true)
+    })
+
+    it("should not match other types", () => {
+      const hf = hasOptionalFields({})
+      expect(hf(NaN)).equals(false)
+      expect(hf(Infinity)).equals(false)
+      expect(hf(1)).equals(false)
+      expect(hf(0)).equals(false)
+      expect(hf(1.3)).equals(false)
+      expect(hf("true")).equals(false)
+      expect(hf(false)).equals(false)
+    })
+
+    it("should not match objects with wrong field types", () => {
+      expect(hasOptionalFields({ key: isNumber })({ key: "10" })).equals(false)
+      expect(hasOptionalFields({ key: refined(isString)(_ => _ === "20", "20") })({ key: "10" })).equals(false)
+      expect(hasOptionalFields({ key: isNumber, value: isNumber })({
+        key: 10,
+        value: "wrong number"
+      })).equals(false)
     })
   })
 
