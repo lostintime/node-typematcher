@@ -16,7 +16,7 @@ export type TypeMatcher<T> = (val: unknown) => val is T
 /**
  * Object fields type matchers structure
  */
-export type FieldsMatcher<T> = { [P in keyof T]: TypeMatcher<T[P]> }
+export type FieldsMatcher<T> = { [P in keyof T]-?: TypeMatcher<T[P]> }
 
 /**
  * Simple type alias to mark refined types, do not use _tag property!
