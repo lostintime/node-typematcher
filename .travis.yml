@@ -1,0 +1,20 @@
+language: node_js
+cache:
+  directories:
+  - node_modules
+notifications:
+  email: false
+node_js:
+- '8.11'
+before_script:
+- npm install
+script:
+- npm run test && npm run build && npm run build
+deploy:
+  provider: npm
+  on:
+    tags: true
+  skip_cleanup: true
+  email: lostintime.dev@gmail.com
+  api_key:
+    secure: AxnvL95NHqPRehJSPmBsxu8DUyeNea9SlHtrsy3U7RXwSCDAgAZ+SbaYbKuZw9IP5rASfDz0YrHGWlUpr1372WGP5dKF1IimCFL2vyj5TUchG0sHCQKGQub0qgPz0gEaarhpQMhK57Wo4/4t3x/FK5nROwdBzdNgo5x5XUMLQxxYIOs/FvZhsOYW6xRgwV+/Rk1/37lAzO2nucSfnes28TTpKfOCFCnIhSs0rn1gvJ+6yLtwSSq1w+1F5Ve+gVm+oswBPzLcnUUbkE/1ldZOxBcI6aYlZdolGrnaM7jInc9V7hJZAomJBH1NzMOzjGbAxeBizLi4aSnH2Ci7+R8ZEFiv5UaCY3onF312Et8YOZ3k0/iI31CCGKtkL23XNwhW8nWJ8R0LlHQfvVgVxIenOKHdv0XhJh2NQyroxSr6Brnct8mjfc4TjdSIrRgV0L004c8ril3E7rDS1WzWtHHiwU/KhDqcbMrDbh4qoppqsB+weyepnzqLwRKhJOTl2/Cvu4DLcgUV/FyOapDqK2zM/ZVTCH3UAsg3aIsZ3Bxnwo/l3wPQ3jiXMS/jo6BTL4nQX06xllYF2R9lpfw3lOZ0eABPzZ8WPLGYyr46XxnrXkJunhCuTpW/RqNGqta5Vfgo7KY8KF/i1gnuUGp1oqPmqjAZ96XtN9xi/JCBnqkqFu0=
