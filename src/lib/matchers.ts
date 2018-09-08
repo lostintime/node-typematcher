@@ -36,6 +36,13 @@ export function isAny(val: unknown): val is any {
 }
 
 /**
+ * Match any (unknown) input values
+ */
+export function isUnknown(val: unknown): val is unknown {
+  return true
+}
+
+/**
  * Match none of input values
  */
 export function isNever(val: unknown): val is never {

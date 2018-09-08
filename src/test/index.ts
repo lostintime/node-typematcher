@@ -12,9 +12,10 @@ import { expect } from "chai"
 import {
   TypeMatcher, Refined, hasFields, isLiteral,
   isAny, isArrayOf, isBoolean, isFiniteNumber, isMissing, isNever, isNull, isNumber, isObject,
-  isString, isUndefined, isTuple1, isTuple2, isTuple3, isTuple4, isTuple5, isTuple6, isTuple7, isTuple8, isTuple9,
-  isTuple10, isBoth, isEither, isOptional, isNullable, refined,
-  match, caseWhen, caseDefault, failWith, isInstanceOf, isObjectMapOf, MatchCase, matcher, hasOptionalFields
+  isString, isUndefined, isTuple1, isTuple2, isTuple3, isTuple4, isTuple5, isTuple6, isTuple7,
+  isTuple8, isTuple9, isTuple10, isBoth, isEither, isOptional, isNullable, refined, match, caseWhen,
+  caseDefault, failWith, isInstanceOf, isObjectMapOf, MatchCase, matcher, hasOptionalFields,
+  isUnknown
 } from "../lib"
 
 describe("Matchers", () => {
@@ -30,6 +31,21 @@ describe("Matchers", () => {
       expect(isAny([])).equals(true)
       expect(isAny(null)).equals(true)
       expect(isAny(undefined)).equals(true)
+    })
+  })
+
+  describe("isUnknown", () => {
+    it("should match any input", () => {
+      expect(isUnknown(false)).equals(true)
+      expect(isUnknown(NaN)).equals(true)
+      expect(isUnknown(Infinity)).equals(true)
+      expect(isUnknown(10)).equals(true)
+      expect(isUnknown(1.3)).equals(true)
+      expect(isUnknown("string")).equals(true)
+      expect(isUnknown({})).equals(true)
+      expect(isUnknown([])).equals(true)
+      expect(isUnknown(null)).equals(true)
+      expect(isUnknown(undefined)).equals(true)
     })
   })
 
